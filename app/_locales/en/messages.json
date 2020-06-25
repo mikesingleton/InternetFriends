@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "InternetFriends",
+    "description": "The name of the application"
+  },
+  "appDescription": {
+    "message": "Connects people browsing online",
+    "description": "The description of the application"
+  }
+}

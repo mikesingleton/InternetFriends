@@ -1,0 +1,49 @@
+{
+  "name": "__MSG_appName__",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "description": "__MSG_appDescription__",
+  "icons": {
+    "16": "images/icon-16.png",
+    "128": "images/icon-128.png"
+  },
+	"incognito": "split",
+  "default_locale": "en",
+  "background": {
+		"page": "html/background.html"
+  },
+  "permissions": [
+    "tabs",
+    "http://*/*",
+    "https://*/*",
+    "background",
+    "webRequest",
+    "*://*.google.com/"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "css": ["styles/inject.css"],
+      "js": [
+        "libs/jquery.min.js",
+        "scripts.babel/portManager.js",
+        "scripts.babel/inject.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+	"web_accessible_resources": [
+		"html/iframe/*"
+	],
+  "browser_action": {
+    "default_icon": {
+      "19": "images/icon-19.png",
+      "38": "images/icon-38.png"
+    },
+    "default_title": "InternetFriends",
+		"default_popup": "html/popup.html"
+  }
+}
