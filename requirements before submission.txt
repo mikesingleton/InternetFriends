@@ -1,0 +1,4 @@
+Step-by-step build instructions to create an exact copy of the add-on code.
+A build script that executes all necessary technical steps.
+Operating system and build environment requirements.
+Details (including required version and installation instructions), of any programs used in the build process (for example: node and npm version used).

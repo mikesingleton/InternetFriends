@@ -7,43 +7,47 @@
     "16": "images/icon-16.png",
     "128": "images/icon-128.png"
   },
-	"incognito": "split",
   "default_locale": "en",
   "background": {
-		"page": "html/background.html"
+		"scripts": [
+      "scripts/logger.js",
+      "scripts/backgroundPortManager.js",
+      "scripts/bundle.js"
+    ]
   },
-  "permissions": [
-    "tabs",
-    "http://*/*",
-    "https://*/*",
-    "background",
-    "webRequest",
-    "*://*.google.com/"
-  ],
+  "permissions": [],
   "content_scripts": [
     {
       "matches": [
-        "http://*/*",
-        "https://*/*"
+        "*://*/*"
+      ],
+      "exclude_matches": [
+        "http://www.internetfriends.social/*",
+        "https://www.internetfriends.social/*",
+        "http://internetfriends.social/*",
+        "https://internetfriends.social/*"
       ],
       "css": ["styles/inject.css"],
       "js": [
-        "libs/jquery.min.js",
-        "scripts.babel/portManager.js",
-        "scripts.babel/inject.js"
+        "libs/jquery-3.5.1.min.js",
+        "scripts/logger.js",
+        "scripts/portManager.js",
+        "scripts/inject.js"
       ],
       "run_at": "document_start"
     }
   ],
 	"web_accessible_resources": [
-		"html/iframe/*"
+    "html/iframe/chat.html",
+    "scripts/chat.js",
+    "styles/core.css",
+    "styles/chat.css"
 	],
   "browser_action": {
     "default_icon": {
       "19": "images/icon-19.png",
       "38": "images/icon-38.png"
     },
-    "default_title": "InternetFriends",
-		"default_popup": "html/popup.html"
+    "default_title": "InternetFriends"
   }
 }

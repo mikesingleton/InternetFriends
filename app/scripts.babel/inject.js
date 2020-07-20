@@ -44,9 +44,11 @@ var Inject = (function (){
 		if (_views[id]) return _views[id];
 		
 		// iframe initial details
-		var src		= chrome.extension.getURL('html/iframe/'+id+'.html?view='+id+'&_'+(new Date().getTime())),
+    var src = chrome && chrome.extension ? chrome.extension.getURL('html/iframe/' + id + '.html?view=' + id + '&_' + new Date().getTime()) : './html/iframe/chat.html',
 			iframe	= $('<iframe />', {id:ID.IFRAME_PREFIX+id, src:src, scrolling:false});
 		
+		Logger.log(src, iframe);
+
 		// view
 		_views[id] = {
 			isLoaded	: false,
@@ -61,7 +63,7 @@ var Inject = (function (){
 	
 	// messages coming from "background.js"
 	function onMessage (request){
-		//console.log(request);
+		Logger.log(request);
 
 		switch (request.event){
 			case 'loaded': message_onLoaded(); break;
@@ -69,12 +71,11 @@ var Inject = (function (){
 	};
 
 	function onDisconnect(){
-		//console.log("disconnected");
+		Logger.log("disconnected");
 		
 		// remove related elements
 		getView('chat', _container).iframe.remove();
 		_container.remove();
-		_portManager = false;
 
 		// remove event listeners
 		document.removeEventListener("scroll", dom_onScroll, false);
@@ -84,6 +85,8 @@ var Inject = (function (){
 		document.removeEventListener("keyup", dom_onKeyup, false);
 		document.removeEventListener("webkitvisibilitychange", dom_onVisibilityChange, false);
 		document.removeEventListener("msvisibilitychange", dom_onVisibilityChange, false);
+		
+		_portManager = null;
 	};
 
 	function isPageHidden(){
@@ -93,7 +96,9 @@ var Inject = (function (){
 	// messages -----------------------------------------------------------------
 	function message_onLoaded () {
 		var data = {scrollX: window.scrollX, scrollY: window.scrollY};
-		_portManager.tell("scroll", data);
+		
+		if (_portManager)
+			_portManager.tell("scroll", data);
 	}
 
 	// events -------------------------------------------------------------------
@@ -122,6 +127,7 @@ var Inject = (function (){
 	function dom_onKeyup (event){
 		var key = event.which || event.keyCode;
 		if (key === 13 && _enterDown) {
+			Logger.log('hey');
 			_portManager.tell("enterpressed");
 			_enterDown = false;
 			event.preventDefault();
@@ -148,4 +154,4 @@ var isWebRTCSupported = navigator.getUserMedia ||
 if (isWebRTCSupported)
 	document.addEventListener("DOMContentLoaded", function (){ Inject.init(); }, false);
 else
-	console.log("InternetFriends does not work without WebRTC support!");
+	Logger.log("InternetFriends does not work without WebRTC support!");

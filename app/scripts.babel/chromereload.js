@@ -15,7 +15,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
 });    
 
 connection.onerror = error => {
-  console.log('reload connection got error:', error);
+  Logger.log('reload connection got error:', error);
 };
 
 connection.onmessage = e => {

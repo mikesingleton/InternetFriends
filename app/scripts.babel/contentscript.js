@@ -1,3 +1,3 @@
 'use strict';
 
-console.log('\'Allo \'Allo! Content script');
+Logger.log('\'Allo \'Allo! Content script');
