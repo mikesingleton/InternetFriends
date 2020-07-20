@@ -1,1 +1,0 @@
-{"version":3,"sources":["scripts/logger.js"],"names":["debug","Logger","log","console","bind","window"],"mappings":"AAAA,YAEA,IAAIA,QAAQ,EACRC,QACFC,IAAKF,MAAQG,QAAQD,IAAIE,KAAKC,OAAOF,SAAW","file":"logger.js","sourcesContent":["\"use strict\";\n\nvar debug = true;\nvar Logger = {\n  log: debug ? console.log.bind(window.console) : function () {}\n};"]}

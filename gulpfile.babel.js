@@ -44,7 +44,7 @@ gulp.task('babel', () => {
       .pipe(gulp.dest('app/scripts'));
 });
 
-gulp.task('clean', del.bind(null, ['.tmp', 'dist', 'website']));
+gulp.task('clean', del.bind(null, ['.tmp', 'cleanScripts', 'website', 'dist']));
 gulp.task('cleanScripts', del.bind(null, ['app/scripts']));
 
 gulp.task('watch', ['lint', 'babel'], () => {
