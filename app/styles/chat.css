@@ -20,7 +20,9 @@ body
 
 .user
 {
-    position: absolute;
+	position: absolute;
+	width: 0px;
+	height: 0px;
 }
 /*
 .user:not(#localuser)
@@ -28,6 +30,18 @@ body
     transition: all 0.5s ease-in-out;
 }
 */
+.circle {
+	top: -5px;
+    left: -10px;
+    height: 30px;
+    width: 30px;
+    background-color: #4d90fe;
+    opacity: .6;
+    border-radius: 50%;
+	position: relative;
+	transform: scale(0);
+}
+
 .fakeMouse {
 	position: absolute;
 	z-index: 99999999999;
@@ -59,18 +73,17 @@ body
 
 .input
 {
+	white-space: nowrap;
 	font-family: "Times New Roman", Times, serif;
 	font-size: 15px;
 	line-height: 1.2;
 	position: absolute;
 	display: inline;
 	opacity: 0;
-	white-space: nowrap;
-	height: 20px;
+	min-height: 20px;
 	line-height: 1.2;
 	background: white;
 	min-width: 0px;
-	width: auto;
 	border: none;
 	outline: none;
 	padding: 3px;
@@ -78,7 +91,7 @@ body
 	padding-right: 4px;
 	border-radius: 5px;
 	top: -4.5px;
-    left: 20px;
+	left: 20px;
 }
 
 .input:focus
@@ -102,9 +115,9 @@ p.speech
 	position: absolute;
 	padding-left: 5px;
 	padding-right: 5px;
-	top: -56px;
+	bottom: 0px;
     left: 14px;
-	height: 25px;
+	min-height: 25px;
 	text-align: center;
 	line-height: 25px;
 	background-color: #fff;
@@ -121,7 +134,7 @@ p.speech:before
 	width: 0;
 	height: 0;
 	left: -3px;
-	top: 25px;
+	bottom: -16px;
 	border: 8px solid;
 	border-color: #333 transparent transparent #333;
 }
@@ -133,7 +146,7 @@ p.speech:after
 	width: 0;
 	height: 0;
 	left: 0px;
-	top: 23px;
+	bottom: -8px;
 	border: 5px solid;
 	border-color: #FFF transparent transparent #FFF;
 }

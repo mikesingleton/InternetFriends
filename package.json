@@ -60,7 +60,7 @@
     "browserify": "^16.5.1",
     "signalhub": "^4.9.0",
     "vinyl-source-stream": "^2.0.0",
-    "webrtc-swarm": "^2.9.0",
+    "webrtc-swarm": "github:tom-james-watson/webrtc-swarm",
     "wrtc": "^0.4.5"
   }
 }

@@ -44,9 +44,9 @@ var Inject = (function (){
 		if (_views[id]) return _views[id];
 		
 		// iframe initial details
-    var src = chrome && chrome.extension ? chrome.extension.getURL('html/iframe/' + id + '.html?view=' + id + '&_' + new Date().getTime()) : './html/iframe/chat.html',
-			iframe	= $('<iframe />', {id:ID.IFRAME_PREFIX+id, src:src, scrolling:false});
-		
+    var src = typeof chrome !== "undefined" && chrome.extension ? chrome.extension.getURL('html/iframe/' + id + '.html?view=' + id + '&_' + new Date().getTime()) : './html/iframe/chat.html',
+			iframe	= $('<iframe/>', {id:ID.IFRAME_PREFIX+id, src:src, scrolling:false,allow:'microphone'});
+
 		Logger.log(src, iframe);
 
 		// view

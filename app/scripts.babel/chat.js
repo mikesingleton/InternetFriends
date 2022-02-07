@@ -7,6 +7,8 @@ var User = function (id, submitCallback){
 		_speechElement		= null,
 		_inputElement		= null,
 		_mouseElement		= null,
+		_mouseBGElm			= null,
+		_mouseAudioVis		= null,
 		_fadeoutTimer		= -1,
 		_mouseFadeoutTimer 	= -1,
 		_submitCallback 	= submitCallback;
@@ -23,7 +25,8 @@ var User = function (id, submitCallback){
 			_inputElement	= $('<span contenteditable="true" class="input"></span>').appendTo(_userElement);
 			setupInputElement();
 		} else {
-			var cursorURL 	= chrome && chrome.extension ? chrome.extension.getURL('../../images/aero_arrow.cur') : './images/aero_arrow.cur';
+			var cursorURL 	= typeof chrome !== "undefined" && chrome.extension ? chrome.extension.getURL('../../images/aero_arrow.cur') : './images/aero_arrow.cur';
+			_mouseAudioVis  = $('<div class="circle"></div>').appendTo(_userElement);
 			_mouseElement	= $('<div class="fakeMouse"></div>').appendTo(_userElement);
 			_mouseBGElm		= $('<div class="fakeMouseBackgroundColor"></div>').appendTo(_mouseElement);
 			_mouseBGElm.css({'background-image': 'url(' + cursorURL + ')'});
@@ -70,6 +73,14 @@ var User = function (id, submitCallback){
 	};
 
 	// public functions ---------------------------------------------------------
+	_this.setAudioAmplitude = function (amplitude) {
+		Logger.log(amplitude);
+		if (amplitude > 80)
+			amplitude = 80;
+
+		_mouseAudioVis.css('transform',  'scale(' + amplitude / 80 + ')');
+	}
+
 	_this.focusInput = function ()
 	{
 		//_inputElement.removeClass('hidden');
@@ -87,23 +98,36 @@ var User = function (id, submitCallback){
 		
 		if (_mouseElement) {
 			_mouseElement.removeClass("fadeout");
-			clearTimeout(_mouseFadeoutTimer);
-			_mouseFadeoutTimer = setTimeout(function () { _mouseElement.addClass("fadeout"); }, 5000);
+			//clearTimeout(_mouseFadeoutTimer);
+			//_mouseFadeoutTimer = setTimeout(function () { _mouseElement.addClass("fadeout"); }, 5000);
 		}
 	};
 
 	_this.say = function (message) {
 		_speechElement.removeClass("fadeout");
-	    _speechElement.html(message);
+		_speechElement.html(message);
+		
+		var words = message.split(' ').length;
+		var wordsPerMinute = 200;
+		var millisecondsPerWord = (1 / wordsPerMinute) * 60 * 1000;
+		var displayTime = millisecondsPerWord * words + 1000; // adds 1 second buffer
 
   		clearTimeout(_fadeoutTimer);
-  		_fadeoutTimer = setTimeout(function () { _speechElement.addClass("fadeout"); }, 2000);
+  		_fadeoutTimer = setTimeout(function () { _speechElement.addClass("fadeout"); }, displayTime);
 		
+		/* Fades out the mouse
 		if (_mouseElement) {
 			_mouseElement.removeClass("fadeout");
 			clearTimeout(_mouseFadeoutTimer);
 			_mouseFadeoutTimer = setTimeout(function () { _mouseElement.addClass("fadeout"); }, 5000);
 		}
+		*/
+	};
+
+	_this.destroy = function () {
+		_userElement.remove();
+		_submitCallback = null;
+		clearTimeout(_fadeoutTimer);
 	};
 
 	_this.init(id);
@@ -128,21 +152,24 @@ var Chat = (function (){
 	};
 
 	// events -------------------------------------------------------------------
-	function onMessage (request){
-		Logger.log('got chat message', request)
-		switch (request.event){
-			case 'scroll': message_onScroll(request.data); break;
-			case 'mousemove': message_onMousemove(request.data); break;
-			case 'mouseleave': message_onMouseleave(request.data); break;
-			case 'enterpressed': message_onEnterpressed(request.data); break;
-			case 'userchat': message_onUserchat(request.data); break;
+	function onMessage (message){
+		Logger.log('got chat message', message)
+		switch (message.event){
+			case 'scroll': message_onScroll(message.data); break;
+			case 'mousemove': message_onMousemove(message.data); break;
+			case 'mouseleave': message_onMouseleave(message.data); break;
+			case 'enterpressed': message_onEnterpressed(message.data); break;
+			case 'userchat': message_onUserchat(message.data); break;
+			case 'streamSettings': message_onStreamSettings(message.data); break;
+			case 'audioAmplitude': message_onAudioAmplitude(message.data); break;
+			case 'disconnected': message_onDisconnect(message.data); break;
 		}
 	};
 
 	// private functions ---------------------------------------------------------
 	function submitInput (message) {
 		var data = {message:message};
-		_portManager.tell("userchat", data);
+		_portManager.tell('userchat', data);
 	};
 
 	function getUser (userId){
@@ -153,6 +180,28 @@ var Chat = (function (){
 	};
 
 	// messages -----------------------------------------------------------------
+	async function getMediaStream(opts) {
+		return navigator.mediaDevices.getUserMedia(opts)
+	}
+
+	function message_onStreamSettings (data) {
+		const audio = {
+			autoGainControl: true,
+			sampleRate: {ideal: 48000, min: 35000},
+			echoCancellation: true,
+			channelCount: {ideal: 1},
+		}
+		
+		try {
+			getMediaStream({audio}).then(result => _portManager.tell('streamSettingsConfirmed', data.userId));
+		} catch {}
+	}
+
+	function message_onAudioAmplitude (data) {
+		var user = getUser(data.userId);
+		user.setAudioAmplitude(data.amplitude);
+	}
+
 	function message_onScroll (data){
 		_scrollPosition.x = data.scrollX;
 		_scrollPosition.y = data.scrollY;
@@ -177,6 +226,12 @@ var Chat = (function (){
 	function message_onUserchat (data){
 		var user = getUser(data.userId);
 		user.say(data.message);
+	};
+
+	function message_onDisconnect (data) {
+		var user = getUser(data.userId);
+		user.destroy();
+		delete _users[data.userId];
 	};
 
 	return _this;

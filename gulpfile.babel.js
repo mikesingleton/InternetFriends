@@ -38,9 +38,9 @@ gulp.task('lint', lint('app/scripts.babel*.js', {
 gulp.task('babel', () => {
   return gulp.src('app/scripts.babel/**/*.js')
       .pipe($.plumber())
-      .pipe($.babel({
+      /*.pipe($.babel({
         presets: ['@babel/env']
-      }))
+      }))*/
       .pipe(gulp.dest('app/scripts'));
 });
 
@@ -91,9 +91,9 @@ gulp.task('extension', (cb) => {
 gulp.task('extension.scripts', () => {
   return gulp.src('app/extension/scripts/**/*.js')
       .pipe($.plumber())
-      .pipe($.babel({
+      /*.pipe($.babel({
         presets: ['@babel/env']
-      }))
+      }))*/
       .pipe(gulp.dest('app/scripts'));
 });
 
@@ -124,7 +124,7 @@ gulp.task('extension.html',  () => {
   return gulp.src('**/*.html', { cwd: './app/extension/', base: './app/extension/' })
     .pipe($.useref({searchPath: ['.tmp', 'app', '.']}))
     .pipe($.sourcemaps.init())
-    .pipe($.if('*.js', $.uglify()))
+    //.pipe($.if('*.js', $.uglify()))
     .pipe($.if('*.css', $.cleanCss({compatibility: '*'})))
     .pipe($.sourcemaps.write())
     .pipe($.if('*.html', $.htmlmin({
@@ -144,7 +144,7 @@ gulp.task('extension.res', function() {
     .pipe(debug())
     .pipe($.if('*.css', $.cleanCss({compatibility: '*'})))
     .pipe($.if('*.js', $.sourcemaps.init()))
-    .pipe($.if('*.js', $.uglify()))
+    //.pipe($.if('*.js', $.uglify()))
     .pipe($.if('*.js', $.sourcemaps.write('.')))
     .pipe(gulp.dest('dist'));
 });
@@ -158,7 +158,7 @@ gulp.task('chromeManifest', () => {
   .pipe(debug())
   .pipe($.if('*.css', $.cleanCss({compatibility: '*'})))
   .pipe($.if('*.js', $.sourcemaps.init()))
-  .pipe($.if('*.js', $.uglify()))
+  //.pipe($.if('*.js', $.uglify()))
   .pipe($.if('*.js', $.sourcemaps.write('.')))
   .pipe(gulp.dest('dist'));
 });
@@ -194,12 +194,11 @@ gulp.task('website.manifest', function() {
       '!*.html',
       ...manifest.web_accessible_resources,
       ...manifest.content_scripts[0].css,
-      ...manifest.content_scripts[0].js,
-      ...manifest.background.scripts
+      ...manifest.content_scripts[0].js
     ], { cwd: './app/', base: './app/' })
     .pipe($.if('*.css', $.cleanCss({compatibility: '*'})))
     .pipe($.if('*.js', $.sourcemaps.init()))
-    .pipe($.if('*.js', $.uglify()))
+    //.pipe($.if('*.js', $.uglify()))
     .pipe($.if('*.js', $.sourcemaps.write('.')))
     .pipe(gulp.dest('./website'));
 });
@@ -207,9 +206,9 @@ gulp.task('website.manifest', function() {
 gulp.task('website.scripts', () => {
   return gulp.src('app/website/scripts/**/*.js')
     .pipe($.plumber())
-    .pipe($.babel({
+    /*.pipe($.babel({
       presets: ['@babel/env']
-    }))
+    }))*/
     .pipe($.if('*.js', $.sourcemaps.init()))
     .pipe($.if('*.js', $.uglify()))
     .pipe($.if('*.js', $.sourcemaps.write('.')))
