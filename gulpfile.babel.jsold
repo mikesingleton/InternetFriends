@@ -5,7 +5,8 @@ import browserify from "browserify";
 import del from 'del';
 import fs from 'fs';
 import runSequence from 'run-sequence';
-import {stream as wiredep} from 'wiredep';
+import wireDep from 'wiredep';
+const {stream: wiredep} = wireDep;
 
 const $ = gulpLoadPlugins();
 

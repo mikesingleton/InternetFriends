@@ -2,3 +2,4 @@
 cd ./app/scripts.babel
 javascript-obfuscator ./ --output ../../dist/scripts.babel
 Remove-Item ../../dist/scripts.babel/background.js
+cd ../../
