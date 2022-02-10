@@ -41,7 +41,7 @@ var Background = (function (){
 
 		Logger.log('connecting to swarm', roomCode);
 
-		var hub = signalhub(roomCode, _local ? ['localhost'] : ['https://if-signalhub.herokuapp.com/'])
+		var hub = signalhub(roomCode, _local ? ['localhost:8080'] : ['https://if-signalhub.herokuapp.com/'])
 		_swarms[roomCode] = swarm(hub, {
 			wrtc: require('wrtc') // don't need this if used in the browser
 		})
