@@ -1,12 +1,74 @@
 <html>
-    <head>
-        <link rel="stylesheet" href="../css/base.css" type="text/css">
-        <script src="../js/popup.js"></script>    
-    </head>
-	<body>
-    	<div id="popupBox">
-	    	<h1>you &#10084; <span class="website-count">0</span> website(s)</h1>
-    		<ul class="website-list"></ul>
+
+<head>
+    <link rel="stylesheet" type="text/css" media="all" href="../../styles/popup.css" />
+    <link rel="stylesheet" type="text/css" media="all" href="../../styles/core.css" />
+    <link rel="stylesheet" type="text/css" media="all" href="../../styles/slider.css" />
+    <script src="../../scripts.babel/logger.js"></script>
+    <script src="../../scripts.babel/popup.js"></script>
+    <script src="../../libs/iro/iro.js"></script>
+</head>
+
+<body>
+    <div class="top-left-feature feature">
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 409.246 410.256" style="fill: rgb(0, 0, 0);" xml:space="preserve">
+            <g id="__id4_s5a2s09euf">
+                <polygon style="opacity: 0.3; fill: rgb(94, 23, 235);" points="0,273.992 273.993,0 408.241,0 409.246,1.005    0,410.256  "></polygon>
+                <polygon style="opacity: 0.5; fill: rgb(94, 23, 235);" points="0,273.992 0,137.731 137.731,0 273.993,0  "></polygon>
+                <polygon style="opacity: 0.8; fill: rgb(94, 23, 235);" points="0,137.731 0,1.474 1.474,0 137.731,0  "></polygon>
+            </g>
+        </svg>
+    </div>
+    <div id="popupBox">
+        <div class="if">
+            Internet Friends
         </div>
-	</body>
+        <div id="website" class="website">
+            &nbsp
+        </div>
+        <table>
+            <tr>
+                <td>
+                    Enable for this website
+                </td>
+                <td>
+                    <label class="switch scaleSlider">
+                        <input id="enableForSite" type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Enable chat
+                </td>
+                <td>
+                    <label class="switch scaleSlider">
+                        <input id="enableChat" type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </td>
+            </tr>
+        </table>
+        <div class="openChat">
+            Open chat
+            <input id="keyComboInput" type="text" />
+        </div>
+        <div class="refresh hidden">
+            Refresh for changes to take effect
+        </div>
+    </div>
+    <div class="bottom-right-feature feature">
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 409.246 410.256" style="fill: rgb(0, 0, 0);" xml:space="preserve">
+            <g id="__id5_sd5wpg6zmc">
+                <polygon style="opacity: 0.3; fill: rgb(94, 23, 235);" points="0,273.992 273.993,0 408.241,0 409.246,1.005    0,410.256  "></polygon>
+                <polygon style="opacity: 0.5; fill: rgb(94, 23, 235);" points="0,273.992 0,137.731 137.731,0 273.993,0  "></polygon>
+                <polygon style="opacity: 0.8; fill: rgb(94, 23, 235);" points="0,137.731 0,1.474 1.474,0 137.731,0  "></polygon>
+            </g>
+        </svg>
+    </div>
+    <div class="wheel" id="colorWheelDemo"></div>
+    <div id="fakeMouse" class="fakeMouseBackgroundColor"></div>
+</body>
+
 </html>

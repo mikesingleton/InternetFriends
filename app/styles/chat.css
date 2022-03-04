@@ -50,8 +50,9 @@ body
     top: -20px;
 	left: -20px;
 	opacity: 1;
-    /*background: radial-gradient(at 25px 30px, rgba(30,87,153,1) 0%,rgba(125,185,232,0) 55%);
-*/
+	filter: drop-shadow(1px 1px 1px rgba(0,0,0,.2));
+	/*filter: drop-shadow(12px 12px 2px rgba(77, 144, 254, 1));*/
+    /*background: radial-gradient(at 25px 30px, rgba(30,87,153,1) 0%,rgba(125,185,232,0) 55%);*/
 }
 
 .fakeMouse.fadeout
@@ -62,8 +63,8 @@ body
 
 .fakeMouseBackgroundColor {
 	position: absolute;
-	width: 34px;
-	height: 34px;
+	width: 32px;
+	height: 32px;
 	top: 20px;
 	left: 20px;
 	background-size: cover;
@@ -125,6 +126,7 @@ p.speech
 	border-top-right-radius: 5px;
 	border-bottom-right-radius: 5px;
 	box-shadow: 0px 0px 0px 3px rgb(77, 144, 254);
+	filter: drop-shadow(1px 1px 1px rgba(0,0,0,.2));
 }
 
 p.speech:before

@@ -5,8 +5,6 @@ const $ = gulpLoadPlugins();
 const plumber = require('gulp-plumber');
 const browserify = require('browserify');
 const fs = require('fs');
-const runSequence = require('run-sequence');
-const { stream } = require('wiredep');
 
 function lint(files, options) {
   return () => {
@@ -28,6 +26,9 @@ function jsLint(cb) {
 function jsBabel() {
   return src('app/scripts.babel/**/*.js')
     .pipe(plumber())
+    .pipe($.babel({
+      presets: ['@babel/env']
+    }))
     .pipe(dest('app/scripts'));
 }
 
@@ -57,7 +58,7 @@ function chromeManifest(cb) {
     .pipe(debug())
     .pipe($.if('*.css', $.cleanCss({compatibility: '*'})))
     .pipe($.if('*.js', $.sourcemaps.init()))
-    //.pipe($.if('*.js', $.uglify()))
+    .pipe($.if('*.js', $.uglify()))
     .pipe($.if('*.js', $.sourcemaps.write('.')))
     .pipe(dest('dist'));
 }
@@ -70,7 +71,7 @@ function res(cb) {
     .pipe(debug())
     .pipe($.if('*.css', $.cleanCss({compatibility: '*'})))
     .pipe($.if('*.js', $.sourcemaps.init()))
-    //.pipe($.if('*.js', $.uglify()))
+    .pipe($.if('*.js', $.uglify()))
     .pipe($.if('*.js', $.sourcemaps.write('.')))
     .pipe(dest('dist'));
 }
@@ -79,7 +80,7 @@ function extensionHtml(cb) {
   return src('**/*.html', { cwd: './app/extension/', base: './app/extension/' })
     .pipe($.useref({searchPath: ['.tmp', 'app', '.']}))
     .pipe($.sourcemaps.init())
-    //.pipe($.if('*.js', $.uglify()))
+    .pipe($.if('*.js', $.uglify()))
     .pipe($.if('*.css', $.cleanCss({compatibility: '*'})))
     .pipe($.sourcemaps.write())
     .pipe($.if('*.html', $.htmlmin({
@@ -92,26 +93,13 @@ function extensionHtml(cb) {
 }
 
 function extensionImages(cb) {
-  return src('app/extension/images/**/*')
-    /*  
-    .pipe($.if($.if.isFile, $.cache($.imagemin({
-      progressive: true,
-      interlaced: true,
-      // don't remove IDs from SVGs, they are often used
-      // as hooks for embedding and styling
-      svgoPlugins: [{cleanupIDs: false}]
-    }))
-    .on('error', function (err) {
-      Logger.log(err);
-      this.end();
-    })))
-    */
-    .pipe(dest('dist/images'));
+  return src('app/extension/images/**/*').pipe(dest('dist/images'));
 }
 
 function extras(cb) {
   return src([
     'app/*.*',
+    'app/extension/fonts/**',
     'app/_locales/**',
     '!app/scripts.babel',
     '!app/*.json',
@@ -154,7 +142,7 @@ function websiteManifest(cb){
     ], { cwd: './app/', base: './app/', allowEmpty: true })
     .pipe($.if('*.css', $.cleanCss({compatibility: '*'})))
     .pipe($.if('*.js', $.sourcemaps.init()))
-    //.pipe($.if('*.js', $.uglify()))
+    .pipe($.if('*.js', $.uglify()))
     .pipe($.if('*.js', $.sourcemaps.write('.')))
     .pipe(dest('./website'));
 }
@@ -162,9 +150,9 @@ function websiteManifest(cb){
 function websiteScripts(cb){
   return src('app/website/scripts/**/*.js')
     .pipe($.plumber())
-    /*.pipe($.babel({
+    .pipe($.babel({
       presets: ['@babel/env']
-    }))*/
+    }))
     .pipe($.if('*.js', $.sourcemaps.init()))
     .pipe($.if('*.js', $.uglify()))
     .pipe($.if('*.js', $.sourcemaps.write('.')))
@@ -198,8 +186,10 @@ function cleanScripts(cb) {
 }
 
 exports.clean = clean;
-exports.jsBabel = jsBabel;
-exports.cleanScripts = cleanScripts;
+exports.extension = jsExtension;
+exports.website = jsWebsite;
+exports.package = package;
+
 exports.default = series(clean,
   jsLint, jsBabel, jsBrowserify,
   jsExtension, jsWebsite, cleanScripts

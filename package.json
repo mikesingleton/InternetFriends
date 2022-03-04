@@ -41,9 +41,11 @@
     }
   },
   "dependencies": {
+    "@jaames/iro": "^5.5.2",
     "browserify": "^16.5.1",
     "browserslist": "^4.19.1",
     "gulp": "^4.0.2",
+    "gulp-babel": "^8.0.0",
     "gulp-chrome-manifest": "^0.0.13",
     "gulp-debug": "^4.0.0",
     "gulp-htmlmin": "^5.0.1",

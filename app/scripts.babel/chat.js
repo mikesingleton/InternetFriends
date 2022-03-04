@@ -1,240 +1,205 @@
-var User = function (id, submitCallback){
-	// variables ----------------------------------------------------------------
-	var _this 				= {},
-		_id 				= null,
-		_mousePosition		= {},
-		_userElement  		= null,
-		_speechElement		= null,
-		_inputElement		= null,
-		_mouseElement		= null,
-		_mouseBGElm			= null,
-		_mouseAudioVis		= null,
-		_fadeoutTimer		= -1,
-		_mouseFadeoutTimer 	= -1,
-		_submitCallback 	= submitCallback;
-	
-	// initialize ---------------------------------------------------------------
-	_this.init = function (id){
-		_id				= id;
-		_mousePosition 	= {x:0, y:0};
-		_userElement 	= $('<div id="' + id + '" class="user"></div>').appendTo($('body'));
-		_speechElement  = $('<p class="speech fadeout"></p>').appendTo(_userElement);
+var User = function(id, submitCallback) {
+    // variables ----------------------------------------------------------------
+    var _this = {},
+        _id = null,
+        _mousePosition = {},
+        _userElement = null,
+        _speechElement = null,
+        _inputElement = null,
+        _mouseElement = null,
+        _mouseBGElm = null,
+        _mouseAudioVis = null,
+        _fadeoutTimer = -1,
+        _submitCallback = submitCallback;
 
-		Logger.log(_id);
-		if(_id == "localuser") {
-			_inputElement	= $('<span contenteditable="true" class="input"></span>').appendTo(_userElement);
-			setupInputElement();
-		} else {
-			var cursorURL 	= typeof chrome !== "undefined" && chrome.extension ? chrome.extension.getURL('../../images/aero_arrow.cur') : './images/aero_arrow.cur';
-			_mouseAudioVis  = $('<div class="circle"></div>').appendTo(_userElement);
-			_mouseElement	= $('<div class="fakeMouse"></div>').appendTo(_userElement);
-			_mouseBGElm		= $('<div class="fakeMouseBackgroundColor"></div>').appendTo(_mouseElement);
-			_mouseBGElm.css({'background-image': 'url(' + cursorURL + ')'});
-		}
-	};
-	
-	// private functions --------------------------------------------------------
-	function submitInput() {
-	  if(_inputElement.text().length > 0) {
-	  	_this.say(_inputElement.text());
-	  	_submitCallback(_inputElement.text());
-	    _inputElement.text('');
-	  }
-	}
+    // initialize ---------------------------------------------------------------
+    _this.init = function(id) {
+        _id = id;
+        _mousePosition = { x: 0, y: 0 };
+        _userElement = $('<div id="' + id + '" class="user" style="left: -16px;"></div>').appendTo($('body'));
+        _speechElement = $('<p class="speech fadeout"></p>').appendTo(_userElement);
 
-	function hideInput() {
-	  if(_inputElement.is(":visible")) {
-	    //_inputElement.addClass('hidden');
-	  }
-	}
+        Logger.log(_id);
+        if (_id == "localuser") {
+            _inputElement = $('<span contenteditable="true" class="input"></span>').appendTo(_userElement);
+            setupInputElement();
+        } else {
+            var cursorURL = typeof chrome !== "undefined" && chrome.extension ? chrome.extension.getURL('../../images/aero_arrow.png') : './images/aero_arrow.png';
+            _mouseElement = $('<div class="fakeMouse"></div>').appendTo(_userElement);
+            _mouseBGElm = $('<div class="fakeMouseBackgroundColor"></div>').appendTo(_mouseElement);
+            _mouseBGElm.css({ 'background-image': 'url(' + cursorURL + ')' });
+        }
+    };
 
-	function setupInputElement () {
-		if (_inputElement) {
-			_inputElement.keydown(function (e) {
-				if (e.keyCode == 13) {
-					e.preventDefault();
-				} else if(_inputElement.text().length == 0 && e.keyCode == 8) {
-					hideInput();
-				}
-			});
+    // private functions --------------------------------------------------------
+    function submitInput() {
+        if (_inputElement.text().length > 0) {
+            _this.say(_inputElement.text());
+            _submitCallback(_inputElement.text());
+            _inputElement.text('');
+        }
+    }
 
-			_inputElement.keyup(function (e) {
-				if (e.keyCode == 13) {
-					submitInput();
-					e.preventDefault();
-				}
-			});
-		}
-	};
+    function setupInputElement() {
+        if (_inputElement) {
+            _inputElement.keydown(function(e) {
+                if (e.keyCode == 13) {
+                    // prevent new line in input element
+                    e.preventDefault();
+                }
+            });
 
-	function repositionElements () {
-  		_userElement.css('top',  _mousePosition.y + 'px');
-		_userElement.css('left', _mousePosition.x + 'px');
-	};
+            _inputElement.keyup(function(e) {
+                if (e.keyCode == 13) {
+                    submitInput();
+                    e.preventDefault();
+                }
+            });
+        }
+    };
 
-	// public functions ---------------------------------------------------------
-	_this.setAudioAmplitude = function (amplitude) {
-		Logger.log(amplitude);
-		if (amplitude > 80)
-			amplitude = 80;
+    function repositionElements() {
+        _userElement.css('top', _mousePosition.y + 'px');
+        _userElement.css('left', _mousePosition.x + 'px');
+    };
 
-		_mouseAudioVis.css('transform',  'scale(' + amplitude / 80 + ')');
-	}
+    // public functions ---------------------------------------------------------
+    _this.setAudioAmplitude = function(amplitude) {
+        Logger.log(amplitude);
+        if (amplitude > 80)
+            amplitude = 80;
 
-	_this.focusInput = function ()
-	{
-		//_inputElement.removeClass('hidden');
-		if (_inputElement) {
-			_inputElement.blur();
-			_inputElement.focus();
-		}
-	};
+        _mouseAudioVis.css('transform', 'scale(' + amplitude / 80 + ')');
+    }
 
-	_this.setMousePosition = function (x, y)
-	{
-		_mousePosition.x = x;
-		_mousePosition.y = y;
-		repositionElements();
-		
-		if (_mouseElement) {
-			_mouseElement.removeClass("fadeout");
-			//clearTimeout(_mouseFadeoutTimer);
-			//_mouseFadeoutTimer = setTimeout(function () { _mouseElement.addClass("fadeout"); }, 5000);
-		}
-	};
+    _this.focusInput = function() {
+        if (_inputElement) {
+            _inputElement.blur();
+            _inputElement.focus();
+        }
+    };
 
-	_this.say = function (message) {
-		_speechElement.removeClass("fadeout");
-		_speechElement.html(message);
-		
-		var words = message.split(' ').length;
-		var wordsPerMinute = 200;
-		var millisecondsPerWord = (1 / wordsPerMinute) * 60 * 1000;
-		var displayTime = millisecondsPerWord * words + 1000; // adds 1 second buffer
+    _this.setMousePosition = function(x, y) {
+        _mousePosition.x = x;
+        _mousePosition.y = y;
+        repositionElements();
 
-  		clearTimeout(_fadeoutTimer);
-  		_fadeoutTimer = setTimeout(function () { _speechElement.addClass("fadeout"); }, displayTime);
-		
-		/* Fades out the mouse
-		if (_mouseElement) {
-			_mouseElement.removeClass("fadeout");
-			clearTimeout(_mouseFadeoutTimer);
-			_mouseFadeoutTimer = setTimeout(function () { _mouseElement.addClass("fadeout"); }, 5000);
-		}
-		*/
-	};
+        if (_mouseElement) {
+            _mouseElement.removeClass("fadeout");
+        }
+    };
 
-	_this.destroy = function () {
-		_userElement.remove();
-		_submitCallback = null;
-		clearTimeout(_fadeoutTimer);
-	};
+    _this.say = function(message) {
+        _speechElement.removeClass("fadeout");
+        _speechElement.html(message);
 
-	_this.init(id);
+        var words = message.split(' ').length;
+        var wordsPerMinute = 200;
+        var millisecondsPerWord = (1 / wordsPerMinute) * 60 * 1000;
+        var displayTime = millisecondsPerWord * words + 1000; // adds 1 second buffer
 
-	return _this;
+        clearTimeout(_fadeoutTimer);
+        _fadeoutTimer = setTimeout(function() { _speechElement.addClass("fadeout"); }, displayTime);
+    };
+
+    _this.destroy = function() {
+        _userElement.remove();
+        _submitCallback = null;
+        clearTimeout(_fadeoutTimer);
+    };
+
+    _this.init(id);
+
+    return _this;
 };
 
 Logger.log('init chat.js')
 
-var Chat = (function (){
-	// variables ----------------------------------------------------------------
-	var _this 			= {},
-		_portManager	= null,
-		_users			= {},
-		_scrollPosition = {};
-	
-	// initialize ---------------------------------------------------------------
-	_this.init = function (){
-		Logger.log('init chat')
-		_portManager 	= new portManager("chat", onMessage);
-		_scrollPosition = {x:0, y:0};
-	};
+var Chat = (function() {
+    // variables ----------------------------------------------------------------
+    var _this = {},
+        _portManager = null,
+        _users = {},
+        _scrollPosition = {};
 
-	// events -------------------------------------------------------------------
-	function onMessage (message){
-		Logger.log('got chat message', message)
-		switch (message.event){
-			case 'scroll': message_onScroll(message.data); break;
-			case 'mousemove': message_onMousemove(message.data); break;
-			case 'mouseleave': message_onMouseleave(message.data); break;
-			case 'enterpressed': message_onEnterpressed(message.data); break;
-			case 'userchat': message_onUserchat(message.data); break;
-			case 'streamSettings': message_onStreamSettings(message.data); break;
-			case 'audioAmplitude': message_onAudioAmplitude(message.data); break;
-			case 'disconnected': message_onDisconnect(message.data); break;
-		}
-	};
+    // initialize ---------------------------------------------------------------
+    _this.init = function() {
+        Logger.log('init chat')
+        _portManager = new portManager("chat", onMessage);
+        _scrollPosition = { x: 0, y: 0 };
+    };
 
-	// private functions ---------------------------------------------------------
-	function submitInput (message) {
-		var data = {message:message};
-		_portManager.tell('userchat', data);
-	};
+    // events -------------------------------------------------------------------
+    function onMessage(message) {
+        Logger.log('got chat message', message)
+        switch (message.event) {
+            case 'scroll':
+                message_onScroll(message.data);
+                break;
+            case 'mousemove':
+                message_onMousemove(message.data);
+                break;
+            case 'mouseleave':
+                message_onMouseleave(message.data);
+                break;
+            case 'enterpressed':
+                message_onEnterpressed(message.data);
+                break;
+            case 'userchat':
+                message_onUserchat(message.data);
+                break;
+            case 'disconnected':
+                message_onDisconnect(message.data);
+                break;
+        }
+    };
 
-	function getUser (userId){
-		if(!_users[userId])
-			_users[userId] = new User(userId, submitInput);
+    // private functions ---------------------------------------------------------
+    function submitInput(message) {
+        var data = { message: message };
+        _portManager.tell('userchat', data);
+    };
 
-		return _users[userId];
-	};
+    function getUser(userId) {
+        if (!_users[userId])
+            _users[userId] = new User(userId, submitInput);
 
-	// messages -----------------------------------------------------------------
-	async function getMediaStream(opts) {
-		return navigator.mediaDevices.getUserMedia(opts)
-	}
+        return _users[userId];
+    };
 
-	function message_onStreamSettings (data) {
-		const audio = {
-			autoGainControl: true,
-			sampleRate: {ideal: 48000, min: 35000},
-			echoCancellation: true,
-			channelCount: {ideal: 1},
-		}
-		
-		try {
-			getMediaStream({audio}).then(result => _portManager.tell('streamSettingsConfirmed', data.userId));
-		} catch {}
-	}
+    // messages -----------------------------------------------------------------
+    function message_onScroll(data) {
+        _scrollPosition.x = data.scrollX;
+        _scrollPosition.y = data.scrollY;
+    }
 
-	function message_onAudioAmplitude (data) {
-		var user = getUser(data.userId);
-		user.setAudioAmplitude(data.amplitude);
-	}
+    function message_onMousemove(data) {
+        var user = getUser(data.userId);
+        var y = data.y - _scrollPosition.y;
+        var x = data.x - _scrollPosition.x;
+        user.setMousePosition(x, y);
+    };
 
-	function message_onScroll (data){
-		_scrollPosition.x = data.scrollX;
-		_scrollPosition.y = data.scrollY;
-	}
+    function message_onMouseleave(data) {};
 
-	function message_onMousemove (data){
-		var user = getUser(data.userId);
-		var y = data.y - _scrollPosition.y;
-		var x = data.x - _scrollPosition.x;
-		user.setMousePosition(x, y);
-	};
+    function message_onEnterpressed(data) {
+        var user = getUser(data.userId);
+        user.focusInput();
+        Logger.log('focus input');
+    };
 
-	function message_onMouseleave (data){
-	};
+    function message_onUserchat(data) {
+        var user = getUser(data.userId);
+        user.say(data.message);
+    };
 
-	function message_onEnterpressed (data){
-		var user = getUser(data.userId);
-		user.focusInput();
-		Logger.log('focus input');
-	};
+    function message_onDisconnect(data) {
+        var user = getUser(data.userId);
+        user.destroy();
+        delete _users[data.userId];
+    };
 
-	function message_onUserchat (data){
-		var user = getUser(data.userId);
-		user.say(data.message);
-	};
-
-	function message_onDisconnect (data) {
-		var user = getUser(data.userId);
-		user.destroy();
-		delete _users[data.userId];
-	};
-
-	return _this;
+    return _this;
 }());
 
-document.addEventListener("DOMContentLoaded", function (){ new Chat.init(); }, false);
+document.addEventListener("DOMContentLoaded", function() { new Chat.init(); }, false);

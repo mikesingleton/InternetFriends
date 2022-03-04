@@ -26,13 +26,7 @@ var portManager = function (source, messageCallback, disconnectCallback){
 
 	// events -------------------------------------------------------------------
 	function port_onMessage (message){
-		/*
-		switch (message.event){
-			case 'tabInfo': message_onTabId(message.data); return;
-		}
-		*/
-
-		// call the listener callback		
+		// call the listener callback
 		if (_messageListener) _messageListener(message);
 	};
 

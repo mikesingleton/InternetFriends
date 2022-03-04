@@ -1,53 +1,58 @@
 {
-  "name": "__MSG_appName__",
-  "version": "0.0.2",
-  "manifest_version": 2,
-  "description": "__MSG_appDescription__",
-  "icons": {
-    "16": "images/icon-16.png",
-    "128": "images/icon-128.png"
-  },
-  "default_locale": "en",
-  "incognito": "split",
-  "background": {
-    "page": "html/background.html"
-  },
-  "permissions": [],
-  "content_scripts": [
-    {
-      "matches": [
-        "*://*/*"
-      ],
-      "exclude_matches": [
-        "http://www.internetfriends.social/*",
-        "https://www.internetfriends.social/*",
-        "http://internetfriends.social/*",
-        "https://internetfriends.social/*"
-      ],
-      "css": ["styles/inject.css"],
-      "js": [
-        "libs/jquery-3.5.1.min.js",
-        "scripts/logger.js",
-        "scripts/portManager.js",
-        "scripts/inject.js"
-      ],
-      "run_at": "document_start"
-    }
-  ],
-	"web_accessible_resources": [
-    "scripts/logger.js",
-    "scripts/backgroundPortManager.js",
-    "scripts/bundle.js",
-    "html/iframe/chat.html",
-    "scripts/chat.js",
-    "styles/core.css",
-    "styles/chat.css"
-	],
-  "browser_action": {
-    "default_icon": {
-      "19": "images/icon-19.png",
-      "38": "images/icon-38.png"
+    "name": "__MSG_appName__",
+    "version": "0.0.2",
+    "manifest_version": 2,
+    "description": "__MSG_appDescription__",
+    "icons": {
+        "16": "images/icon-16.png",
+        "128": "images/icon-128.png"
     },
-    "default_title": "InternetFriends"
-  }
+    "default_locale": "en",
+    "incognito": "split",
+    "background": {
+        "page": "html/background.html"
+    },
+    "permissions": [
+        "storage",
+        "activeTab"
+    ],
+    "content_scripts": [{
+        "matches": [
+            "*://*/*"
+        ],
+        "exclude_matches": [
+            "http://www.internetfriends.social/*",
+            "https://www.internetfriends.social/*",
+            "http://internetfriends.social/*",
+            "https://internetfriends.social/*"
+        ],
+        "css": ["styles/inject.css"],
+        "js": [
+            "libs/jquery-3.5.1.min.js",
+            "scripts/logger.js",
+            "scripts/portManager.js",
+            "scripts/inject.js"
+        ],
+        "run_at": "document_start"
+    }],
+    "web_accessible_resources": [
+        "scripts/logger.js",
+        "scripts/backgroundPortManager.js",
+        "scripts/bundle.js",
+        "scripts/popup.js",
+        "html/iframe/chat.html",
+        "scripts/chat.js",
+        "styles/core.css",
+        "styles/chat.css",
+        "styles/slider.css",
+        "styles/popup.css"
+    ],
+    "browser_action": {
+        "default_popup": "html/popup.html",
+        "default_icon": {
+            "19": "images/icon-19.png",
+            "38": "images/icon-38.png"
+        },
+        "default_title": "InternetFriends"
+    }
 }

@@ -1,0 +1,78 @@
+body {
+  text-align: center;
+  width: 314px;
+  height: 232px;
+}
+
+table {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#popupBox div {
+  margin: 10px;
+}
+
+#keyComboInput {
+  width: 150px;
+  margin-left: 6px;
+  margin-right: 7px;
+}
+
+body tr td:first-child {
+  width: 11em;
+  min-width: 11em;
+  max-width: 11em;
+  word-break: break-all;
+}
+
+.if {
+  padding-top: 6px;
+  font-family: "Open Sans Extra Bold", Verdana, Geneva, Tahoma, sans-serif;
+  font-size: 9.5vw;
+  color: rgb(0, 0, 0);
+}
+
+.website {
+  font-family: "Open Sans", Verdana, Geneva, Tahoma, sans-serif;
+  font-size: 4vw;
+  font-weight: bold;
+  color: #5e17eb;
+}
+
+.top-left-feature {
+  top: 0px;
+  left: 0px;
+}
+
+.bottom-right-feature {
+  bottom: 0px;
+  right: 0px;
+  transform: rotate(180deg);
+}
+
+.feature {
+  width: 14vw;
+  position: fixed;
+}
+
+.scaleSlider {
+  transform: scale(0.6, 0.6);
+}
+
+.refresh {
+  position: absolute;
+  bottom: 3px;
+  font-size: 84%;
+  left: 3px;
+  opacity: 0;
+}
+
+.openChat {
+  font-size: medium;
+}
+
+.fakeMouseBackgroundColor {
+  width: 32px;
+  height: 32px;
+}

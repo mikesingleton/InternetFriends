@@ -1,0 +1,8 @@
+@font-face {
+  font-family: "Open Sans Extra Bold";
+  src: url(../extension/fonts/OpenSans-ExtraBold.ttf) format("truetype");
+}
+@font-face {
+  font-family: "Open Sans";
+  src: url(../extension/fonts/OpenSans-Regular.ttf) format("truetype");
+}
