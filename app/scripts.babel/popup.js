@@ -19,8 +19,8 @@ var Popup = (function() {
     _this.init = function() {
         Logger.log('init popup');
         
-        //if (!chrome || !chrome.storage || !chrome.tabs)
-        //    return;
+        if (!chrome || !chrome.storage || !chrome.tabs)
+           return;
 
         // Get document elements
 
@@ -31,14 +31,14 @@ var Popup = (function() {
 
         // Get chrome information
         
-        // chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
-        //     let url = new URL(tabs[0].url);
-        //     _website.innerHTML = url ? url.host : " ";
-        // });
+        chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
+            let url = new URL(tabs[0].url);
+            _website.innerHTML = url ? url.host : " ";
+        });
 
-        // chrome.storage.sync.get(['if-settings'], function(result) {
-        //     console.log('Value currently is ' + result);
-        // });
+        chrome.storage.sync.get(['if-settings'], function(result) {
+            console.log('Value currently is ' + result);
+        });
 
         // Populate values
 
@@ -56,12 +56,13 @@ var Popup = (function() {
         _storedSettings = {
             combo: _defaultCombo,
             disabledSites: [],
-            enableChat: _enableChat.checked
+            enableChat: _enableChat.checked,
+            userColor: '#2196f3'
         }
 
-        // chrome.storage.sync.set({'if-settings': _storedSettings}, function() {
-        //     console.log('Value is set to ' + _storedSettings);
-        // });
+        chrome.storage.sync.set({'if-settings': _storedSettings}, function() {
+            console.log('Value is set to ' + _storedSettings);
+        });
 
         // Init ColorWheel
 
@@ -86,7 +87,18 @@ var Popup = (function() {
             let hsv = color.hsv;
             var _mouseBGElm = document.getElementById('fakeMouse');
             _mouseBGElm.style.filter = "hue-rotate(" + (hsv.h - init.h) + "deg) saturate(" + (hsv.s / init.s * 100) + "%)";
+            document.documentElement.style.setProperty('--userColor', color.rgbString);
+
+            _storedSettings.userColor = color.rgbString;
         })
+        
+        // Handle Color Wheel Popup
+
+        var _cursorColorButton = document.getElementById('cursorColorButton');
+        var _colorWheelContainerBackground = document.getElementById('colorWheelContainerBackground');
+
+        _cursorColorButton.addEventListener("click", onCursorButtonClicked);
+        _colorWheelContainerBackground.addEventListener("click", onPopupContainerClicked);
     };
 
     // private functions --------------------------------------------------------
@@ -118,7 +130,21 @@ var Popup = (function() {
             (altKey ? "Alt + " : "") +
             (shiftKey ? "Shift + " : "") +
             ((key !== "Control" && key !== "Shift" && key !== "Alt") ? key : "");
-    }
+    };
+
+    function onCursorButtonClicked(event) {
+        var _colorWheelContainer = document.getElementById('colorWheelContainer');
+        _colorWheelContainer.style.visibility = "visible";
+    };
+
+    function onPopupContainerClicked(event) {
+        var _colorWheelContainer = document.getElementById('colorWheelContainer');
+        _colorWheelContainer.style.visibility = "hidden";
+        
+        chrome.storage.sync.set({'if-settings': _storedSettings}, function() {
+            console.log('Value is set to ' + _storedSettings);
+        });
+    };
 
     return _this;
 }());

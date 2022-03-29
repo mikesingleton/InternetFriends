@@ -10,65 +10,76 @@
 </head>
 
 <body>
-    <div class="top-left-feature feature">
-        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 409.246 410.256" style="fill: rgb(0, 0, 0);" xml:space="preserve">
-            <g id="__id4_s5a2s09euf">
-                <polygon style="opacity: 0.3; fill: rgb(94, 23, 235);" points="0,273.992 273.993,0 408.241,0 409.246,1.005    0,410.256  "></polygon>
-                <polygon style="opacity: 0.5; fill: rgb(94, 23, 235);" points="0,273.992 0,137.731 137.731,0 273.993,0  "></polygon>
-                <polygon style="opacity: 0.8; fill: rgb(94, 23, 235);" points="0,137.731 0,1.474 1.474,0 137.731,0  "></polygon>
-            </g>
-        </svg>
+    <div id="popupContainer" class="popupContainer">
+        <div class="top-left-feature feature">
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 409.246 410.256" style="fill: rgb(0, 0, 0);" xml:space="preserve">
+                <g id="__id4_s5a2s09euf">
+                    <polygon class="polygon" style="opacity: 0.3;" points="0,273.992 273.993,0 408.241,0 409.246,1.005    0,410.256  "></polygon>
+                    <polygon class="polygon" style="opacity: 0.5;" points="0,273.992 0,137.731 137.731,0 273.993,0  "></polygon>
+                    <polygon class="polygon" style="opacity: 0.8;" points="0,137.731 0,1.474 1.474,0 137.731,0  "></polygon>
+                </g>
+            </svg>
+        </div>
+        <div id="popupBox">
+            <div class="if">
+                Internet Friends
+            </div>
+            <div id="website" class="website">
+                website.com
+            </div>
+            <table class="table">
+                <tr>
+                    <td>
+                        Enable for this website
+                        <label class="switch scaleSlider">
+                            <input id="enableForSite" type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Enable chat
+                        <label class="switch scaleSlider">
+                            <input id="enableChat" type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Open chat
+                        <input id="keyComboInput" type="text" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        User color
+                        <button id="cursorColorButton" class="fakeMouseButton">
+                            <div id="fakeMouse" class="fakeMouseBackgroundColor"></div>
+                        </button>
+                    </td>
+                </tr>
+            </table>
+            <div class="refresh">
+                Refresh for changes to take effect
+            </div>
+        </div>
+        <div class="bottom-right-feature feature">
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 409.246 410.256" style="fill: rgb(0, 0, 0);" xml:space="preserve">
+                <g id="__id5_sd5wpg6zmc">
+                    <polygon class="polygon" style="opacity: 0.3;" points="0,273.992 273.993,0 408.241,0 409.246,1.005    0,410.256  "></polygon>
+                    <polygon class="polygon" style="opacity: 0.5;" points="0,273.992 0,137.731 137.731,0 273.993,0  "></polygon>
+                    <polygon class="polygon" style="opacity: 0.8;" points="0,137.731 0,1.474 1.474,0 137.731,0  "></polygon>
+                </g>
+            </svg>
+        </div>
     </div>
-    <div id="popupBox">
-        <div class="if">
-            Internet Friends
+    <div id="colorWheelContainer" class="colorWheelContainer">
+        <div id="colorWheelPopup" class="popup">
+            <div class="wheel" id="colorWheelDemo"></div>
         </div>
-        <div id="website" class="website">
-            &nbsp
-        </div>
-        <table>
-            <tr>
-                <td>
-                    Enable for this website
-                </td>
-                <td>
-                    <label class="switch scaleSlider">
-                        <input id="enableForSite" type="checkbox" checked>
-                        <span class="slider"></span>
-                    </label>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    Enable chat
-                </td>
-                <td>
-                    <label class="switch scaleSlider">
-                        <input id="enableChat" type="checkbox" checked>
-                        <span class="slider"></span>
-                    </label>
-                </td>
-            </tr>
-        </table>
-        <div class="openChat">
-            Open chat
-            <input id="keyComboInput" type="text" />
-        </div>
-        <div class="refresh hidden">
-            Refresh for changes to take effect
-        </div>
+        <div id="colorWheelContainerBackground" class="colorWheelContainerBackground">
     </div>
-    <div class="bottom-right-feature feature">
-        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 409.246 410.256" style="fill: rgb(0, 0, 0);" xml:space="preserve">
-            <g id="__id5_sd5wpg6zmc">
-                <polygon style="opacity: 0.3; fill: rgb(94, 23, 235);" points="0,273.992 273.993,0 408.241,0 409.246,1.005    0,410.256  "></polygon>
-                <polygon style="opacity: 0.5; fill: rgb(94, 23, 235);" points="0,273.992 0,137.731 137.731,0 273.993,0  "></polygon>
-                <polygon style="opacity: 0.8; fill: rgb(94, 23, 235);" points="0,137.731 0,1.474 1.474,0 137.731,0  "></polygon>
-            </g>
-        </svg>
-    </div>
-    <div class="wheel" id="colorWheelDemo"></div>
-    <div id="fakeMouse" class="fakeMouseBackgroundColor"></div>
 </body>
-
 </html>
