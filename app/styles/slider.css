@@ -27,6 +27,7 @@
   background-color: #ccc;
   -webkit-transition: transform 0.4s;
   transition: transform 0.4s;
+  outline: 1px solid var(--userColorDark);
 }
 
 .slider:before {

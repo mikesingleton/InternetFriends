@@ -1,5 +1,9 @@
 :root {
-  --userColor: #2196f3;
+  --userColor: rgba(33, 150, 243, 1);
+  --userColorDark: rgba(33, 150, 243, 1);
+  --compUserColorLight: rgba(243, 126, 33, 0.4);
+  --compUserColorDark: rgba(243, 126, 33, 1);
+  --websiteTextColor: rgba(0, 0, 0, 1);
 }
 
 body {
@@ -26,21 +30,18 @@ table {
 }
 
 td {
+  height: 34px;
   align-items: center;
   display: flex;
   justify-content: space-between;
 }
 
-#popupBox > div {
-  margin: 10px;
-}
-
 #keyComboInput {
-  width: 150px;
-  margin-left: 6px;
+  width: 146px;
 }
 
 .if {
+  margin-top: 14px;
   padding-top: 6px;
   font-family: "Open Sans Extra Bold", Verdana, Geneva, Tahoma, sans-serif;
   font-size: 29.83px;
@@ -48,10 +49,19 @@ td {
 }
 
 .website {
+  margin: 9px;
   font-family: "Open Sans", Verdana, Geneva, Tahoma, sans-serif;
   font-size: 12.56px;
   font-weight: bold;
-  color: var(--userColor);
+  color: var(--websiteTextColor);
+  background: var(--compUserColorLight);
+  height: 22px;
+  margin-left: 22px;
+  margin-right: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--compUserColorDark);
 }
 
 .top-left-feature {
@@ -81,6 +91,7 @@ td {
   font-size: 84%;
   left: 3px;
   opacity: 0;
+  margin: 2px;
 }
 
 .openChat {

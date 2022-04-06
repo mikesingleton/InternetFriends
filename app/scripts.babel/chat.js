@@ -19,7 +19,7 @@ var User = function(id, submitCallback) {
         _userElement = $('<div id="' + id + '" class="user" style="left: -16px;"></div>').appendTo($('body'));
         _speechElement = $('<p class="speech fadeout"></p>').appendTo(_userElement);
 
-        Logger.log(_id);
+        Logger.log(`new User Initialized "${_id}"`);
         if (_id == "localuser") {
             _inputElement = $('<span contenteditable="true" class="input"></span>').appendTo(_userElement);
             setupInputElement();
@@ -89,6 +89,19 @@ var User = function(id, submitCallback) {
         }
     };
 
+    _this.setColor = function(userColor) {
+        let initColor = { h: 207, s: 86, v: 95 };
+        let iroColor = new iro.Color(userColor);
+        let hsv = iroColor.hsv;
+
+        // saturation must be greater than or equal to 50
+        if (hsv.s < 50)
+            return;
+
+        // add filter to mouse background element to change user color
+        _mouseBGElm.css('filter', "hue-rotate(" + (hsv.h - initColor.h) + "deg) saturate(" + (hsv.s / initColor.s * 100) + "%)");
+    }
+
     _this.say = function(message) {
         _speechElement.removeClass("fadeout");
         _speechElement.html(message);
@@ -113,26 +126,31 @@ var User = function(id, submitCallback) {
     return _this;
 };
 
-Logger.log('init chat.js')
-
 var Chat = (function() {
     // variables ----------------------------------------------------------------
     var _this = {},
+        _storedSettings = null,
         _portManager = null,
         _users = {},
         _scrollPosition = {};
 
     // initialize ---------------------------------------------------------------
     _this.init = function() {
-        Logger.log('init chat')
-        _portManager = new portManager("chat", onMessage);
-        _scrollPosition = { x: 0, y: 0 };
+        Logger.log('Chat View Initialized')
+        chrome.storage.sync.get(['if-settings'], function(result) {
+			_storedSettings = result['if-settings'];
+            _portManager = new portManager("chat", onMessage);
+            _scrollPosition = { x: 0, y: 0 };
+        });
     };
 
     // events -------------------------------------------------------------------
     function onMessage(message) {
         Logger.log('got chat message', message)
         switch (message.event) {
+            case 'connected':
+                message_onConnected(message.data);
+                break;
             case 'scroll':
                 message_onScroll(message.data);
                 break;
@@ -142,11 +160,13 @@ var Chat = (function() {
             case 'mouseleave':
                 message_onMouseleave(message.data);
                 break;
-            case 'enterpressed':
-                message_onEnterpressed(message.data);
+            case 'openchat':
+                message_onOpenchat(message.data);
                 break;
             case 'userchat':
-                message_onUserchat(message.data);
+                // only process 'userchat' messages if chat is enabled
+                if (_storedSettings.enableChat)
+                    message_onUserchat(message.data);
                 break;
             case 'disconnected':
                 message_onDisconnect(message.data);
@@ -168,6 +188,11 @@ var Chat = (function() {
     };
 
     // messages -----------------------------------------------------------------
+    function message_onConnected(data) {
+        var user = getUser(data.userId);
+        user.setColor(data.userColor);
+    }
+
     function message_onScroll(data) {
         _scrollPosition.x = data.scrollX;
         _scrollPosition.y = data.scrollY;
@@ -182,10 +207,9 @@ var Chat = (function() {
 
     function message_onMouseleave(data) {};
 
-    function message_onEnterpressed(data) {
+    function message_onOpenchat(data) {
         var user = getUser(data.userId);
         user.focusInput();
-        Logger.log('focus input');
     };
 
     function message_onUserchat(data) {

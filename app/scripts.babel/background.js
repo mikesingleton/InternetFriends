@@ -10,7 +10,7 @@ var Background = (function() {
         _portManager = null,
         _guid = null,
         _swarms = {},
-        _streamPeers = {};
+        _connectionAttempts = {};
 
     // initialize ---------------------------------------------------------------
     _this.init = function() {
@@ -18,7 +18,7 @@ var Background = (function() {
         _portManager = new backgroundPortManager(processMessageFromBrowser, processRoomDisconnect);
         _guid = guid();
 
-        Logger.log('init');
+        Logger.log('Internet Friends Background Script Initialized');
     };
 
     // private functions --------------------------------------------------------
@@ -36,7 +36,7 @@ var Background = (function() {
         if (_swarms[roomCode])
             return;
 
-        Logger.log('connecting to swarm', roomCode);
+        Logger.log('connecting to swarm ', roomCode);
 
         var hub = signalhub(roomCode, _local ? ['localhost:8080'] : ['https://if-signalhub.herokuapp.com/'])
         _swarms[roomCode] = swarm(hub, {
@@ -47,16 +47,24 @@ var Background = (function() {
             Logger.log('connected to a new peer:', id)
             Logger.log('total peers:', _swarms[roomCode].peers.length)
 
+            // send connection message
+            var connectionMessage = {
+                event: 'connected',
+                data: {
+                    source: 'peer',
+                    userId: _guid,
+                    userColor: _storedSettings.userColor,
+                }
+            }
+
+            peer.send(JSON.stringify(connectionMessage));
+
+            // setup data listener
             peer.on('data', (payload) => {
                 const message = JSON.parse(payload.toString())
                 message.data.source = 'peer'
                 message.data.userId = id
                 Logger.log(message);
-
-                // Add peer to list of peers to stream to
-                if (message.event == 'streamSettings') {
-                    _streamPeers[id] = { peer };
-                }
 
                 // Forward the message to the chat window
                 const foundRoom = _portManager.tellByRoomCode(roomCode, message);
@@ -75,11 +83,6 @@ var Background = (function() {
                     userId: id
                 }
             });
-
-            if (_streamPeers[id]) {
-                clearInterval(_streamPeers[id].audioInterval);
-                delete _streamPeers[id];
-            }
         })
     };
 
@@ -91,10 +94,31 @@ var Background = (function() {
     };
 
     function sendMessageToSwarm(message, roomCode) {
-        if (!_swarms[roomCode])
-            connectToSwarm(roomCode)
+        // if message if intended for a new swarm
+        if (!_swarms[roomCode] && !_connectionAttempts[roomCode]) {
+            // mark connection attempt so we don't make multiple at the same time
+            _connectionAttempts[roomCode] = true;
 
-        if (_swarms[roomCode]) {
+            // retrieve settings before connecting to a new swarm
+            chrome.storage.sync.get(['if-settings'], function(result) {
+                _storedSettings = result['if-settings'];
+
+                // connect to the new swarm
+                connectToSwarm(roomCode);
+
+                // send the message to the swarm
+                if (_swarms[roomCode]) {
+                    _swarms[roomCode].peers.forEach((peer) => {
+                        peer.send(JSON.stringify(message));
+                    });
+                }
+
+                // remove roomCode from list of _connectionAttempts
+                delete _connectionAttempts[roomCode];
+            });
+        }
+        // already connected, send the message to the swarm
+        else if (_swarms[roomCode]) {
             _swarms[roomCode].peers.forEach((peer) => {
                 peer.send(JSON.stringify(message));
             });

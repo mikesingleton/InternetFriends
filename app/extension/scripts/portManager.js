@@ -19,7 +19,7 @@ var portManager = function (source, messageCallback, disconnectCallback){
 		_port.onMessage.addListener(port_onMessage);	
 		_port.onDisconnect.addListener(port_onDisconnect);
 
-		Logger.log('portManager init', source);
+		Logger.log(`PortManager Initialized in "${source}"`);
 	};
 	
 	// private functions --------------------------------------------------------
