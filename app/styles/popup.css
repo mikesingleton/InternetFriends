@@ -63,7 +63,7 @@ td {
   align-items: center;
   justify-content: center;
   border: 1px solid var(--compUserColorDark);
-  user-select: auto;
+  overflow: hidden;
 }
 
 .top-left-feature {

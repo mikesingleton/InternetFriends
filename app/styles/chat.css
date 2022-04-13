@@ -21,12 +21,7 @@ body {
   width: 0px;
   height: 0px;
 }
-/*
-.user:not(#localuser)
-{
-    transition: all 0.5s ease-in-out;
-}
-*/
+
 .circle {
   top: -5px;
   left: -10px;
@@ -89,7 +84,6 @@ body {
   padding-right: 4px;
   border-radius: 5px;
   top: -4.5px;
-  left: 20px;
 }
 
 .input:focus {
@@ -111,14 +105,12 @@ p.speech {
   padding-left: 5px;
   padding-right: 5px;
   bottom: 0px;
-  left: 14px;
   min-height: 25px;
   text-align: center;
   line-height: 25px;
   background-color: #fff;
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
   box-shadow: 0px 0px 0px 3px rgba(33, 150, 243, 1);
   filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.2));
 }
@@ -128,10 +120,8 @@ p.speech:before {
   position: absolute;
   width: 0;
   height: 0;
-  left: -3px;
   bottom: -16px;
   border: 8px solid;
-  border-color: #333 transparent transparent #333;
 }
 
 p.speech:after {
@@ -139,16 +129,48 @@ p.speech:after {
   position: absolute;
   width: 0;
   height: 0;
-  left: 0px;
   bottom: -8px;
   border: 5px solid;
+}
+
+.user:not(.flipped) > .input {
+  left: 20px;
+}
+
+.user:not(.flipped) > p.speech {
+  left: 14px;
+  border-bottom-right-radius: 5px;
+}
+
+.user:not(.flipped) > p.speech:before {
+  left: -3px;
+  border-color: #333 transparent transparent #333;
+}
+
+.user:not(.flipped) > p.speech:after {
+  left: 0px;
   border-color: #fff transparent transparent #fff;
+}
+
+.user.flipped > .input {
+  right: 12px;
+}
+
+.user.flipped > p.speech {
+  right: 6px;
+  border-bottom-left-radius: 5px;
+}
+
+.user.flipped > p.speech:before {
+  right: -3px;
+  border-color: #333 #333 transparent transparent;
+}
+
+.user.flipped > p.speech:after {
+  right: 0px;
+  border-color: #fff #fff transparent transparent;
 }
 
 .text {
   margin: auto;
-}
-
-.flipped {
-  transform: scaleX(-1);
 }

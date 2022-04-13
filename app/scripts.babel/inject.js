@@ -59,6 +59,7 @@ var Inject = (function() {
             document.addEventListener("scroll", dom_onScroll, false);
             document.addEventListener("mouseover", dom_onMousemove, false);
             document.addEventListener("mousemove", dom_onMousemove, false);
+            document.addEventListener("mouseenter", dom_onMouseenter, false);
             document.addEventListener("mouseleave", dom_onMouseleave, false);
             document.addEventListener("webkitvisibilitychange", dom_onVisibilityChange, false);
             document.addEventListener("msvisibilitychange", dom_onVisibilityChange, false);
@@ -135,6 +136,7 @@ var Inject = (function() {
         document.removeEventListener("scroll", dom_onScroll, false);
         document.removeEventListener("mouseover", dom_onMousemove, false);
         document.removeEventListener("mousemove", dom_onMousemove, false);
+        document.removeEventListener("mouseenter", dom_onMouseenter, false);
         document.removeEventListener("mouseleave", dom_onMouseleave, false);
         document.removeEventListener("keydown", dom_onKeydown, false);
         document.removeEventListener("keyup", dom_onKeyup, false);
@@ -167,6 +169,10 @@ var Inject = (function() {
         _portManager.tell("mousemove", data);
     };
 
+    function dom_onMouseenter(event) {
+        _portManager.tell("mouseenter");
+    };
+
     function dom_onMouseleave(event) {
         _portManager.tell("mouseleave");
     };
@@ -176,6 +182,10 @@ var Inject = (function() {
         var combo = _settings.combo;
         // Detect combo press
         if (event.ctrlKey == combo.ctrlKey && event.shiftKey == combo.shiftKey && event.altKey == combo.altKey && key === combo.key) {
+            // If the combo does not contain any modifiers, only trigger when the document body has focus, otherwise return
+            if (!combo.ctrlKey && !combo.shiftKey && !combo.altKey && !document.hasFocus())
+                return;
+
             _comboDown = true;
             event.preventDefault();
         }

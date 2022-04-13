@@ -67,14 +67,10 @@ var User = function(id, submitCallback) {
 
         if (!_flipped && _mousePosition.x > document.documentElement.clientWidth / 2) {
             _flipped = true;
-            _userElement.css('transform', 'scaleX(-1) translateX(-7px)');
-            _textElement.css('transform', 'scaleX(-1)');
-            _inputElement.css('transform', 'scaleX(-1)');
+            _userElement.addClass('flipped');
         } else if (_flipped && _mousePosition.x < document.documentElement.clientWidth / 2) {
             _flipped = false;
-            _userElement.css('transform', '');
-            _textElement.css('transform', '');
-            _inputElement.css('transform', '');
+            _userElement.removeClass('flipped');
         }
     };
 
@@ -82,6 +78,7 @@ var User = function(id, submitCallback) {
     _this.focusInput = function() {
         if (_inputElement) {
             _inputElement.blur();
+            _inputElement.text('');
             _inputElement.focus();
         }
     };
@@ -142,7 +139,8 @@ var Chat = (function() {
         _storedSettings = null,
         _portManager = null,
         _users = {},
-        _scrollPosition = {};
+        _scrollPosition = {},
+        _mouseVisible = true;
 
     // initialize ---------------------------------------------------------------
     _this.init = function() {
@@ -166,6 +164,9 @@ var Chat = (function() {
                 break;
             case 'mousemove':
                 message_onMousemove(message.data);
+                break;
+            case 'mouseenter':
+                message_onMouseenter(message.data);
                 break;
             case 'mouseleave':
                 message_onMouseleave(message.data);
@@ -223,11 +224,20 @@ var Chat = (function() {
         user.setMousePosition(x, y);
     };
 
-    function message_onMouseleave(data) {};
+    function message_onMouseenter(data) {
+        _mouseVisible = true;
+    };
+
+    function message_onMouseleave(data) {
+        _mouseVisible = false;
+    };
 
     function message_onOpenchat(data) {
-        var user = getUser(data.userId);
-        user.focusInput();
+        // only open chat if the mouse is on the page
+        if (_mouseVisible) {
+            var user = getUser(data.userId);
+            user.focusInput();
+        }
     };
 
     function message_onUserchat(data) {
