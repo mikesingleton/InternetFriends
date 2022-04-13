@@ -7,21 +7,39 @@ var Inject = (function() {
 
     // variables ----------------------------------------------------------------
     var _this = {},
-        _storedSettings = null,
+        _settings = null,
         _views = {},
         _container = null,
         _portManager = null,
-        _comboDown = false;
+        _comboDown = false,
+        _defaultCombo = {
+            ctrlKey: true,
+            shiftKey: true,
+            altKey: false,
+            key: "Enter"
+        };
 
     // initialize ---------------------------------------------------------------
     _this.init = function() {
-        Logger.log('Internet Friends Initializing on ' + window.location.href);
+        Logger.log(`Internet Friends Initializing Room "${window.location.host + window.location.pathname} : ${document.title}"`);
         chrome.storage.sync.get(['if-settings'], function(result) {
-			_storedSettings = result['if-settings'];
+			let storedSettings = result['if-settings'];
             
+            _settings = {
+                combo: storedSettings?.combo || _defaultCombo,
+                disabledSites: storedSettings?.disabledSites || {},
+                enableChat: storedSettings?.enableChat === true || storedSettings?.enableChat === undefined,
+                userColor: storedSettings?.userColor || getRandomIroColor()
+            }
+            
+            chrome.storage.sync.set({'if-settings': _settings}, function() {
+                Logger.log('Set Settings:');
+                Logger.log(_settings);
+            });
+
 			// If websiteUrl is present in disabledSites, InternetFriends is disabled for this site, return
-            let websiteUrl = new URL(window.location.href).host;
-			if (_storedSettings.disabledSites[websiteUrl]) {
+            let websiteUrl = window.location.host;
+			if (_settings.disabledSites[websiteUrl]) {
                 Logger.log('Website is disabled. Exiting.');
                 return;
             }
@@ -46,7 +64,7 @@ var Inject = (function() {
             document.addEventListener("msvisibilitychange", dom_onVisibilityChange, false);
 
             // if chat is not enabled, return
-            if (!_storedSettings.enableChat) {
+            if (!_settings.enableChat) {
                 Logger.log('Chat disabled. Disabling Key Combo Listeners.');
                 return;
             }
@@ -63,12 +81,17 @@ var Inject = (function() {
 
                 // update settings
                 if (key === "if-settings")
-                    _storedSettings = newValue;
+                    _settings = newValue;
             }
         });
     };
 
     // private functions --------------------------------------------------------
+    function getRandomIroColor () {
+        var iroColor = new iro.Color('{a: 1, h: 0, s: 70, v: 90}');
+        iroColor.hue += Math.random() * 360;
+        return iroColor.hsva;
+    }
 
     function getView(id) {
         // return the view if it's already created
@@ -140,7 +163,7 @@ var Inject = (function() {
     };
 
     function dom_onMousemove(event) {
-        var data = { x: event.pageX, y: event.pageY };
+        var data = { x: event.pageX, y: event.pageY, vw: ((event.pageX / document.documentElement.clientWidth) * 100) };
         _portManager.tell("mousemove", data);
     };
 
@@ -150,7 +173,7 @@ var Inject = (function() {
 
     function dom_onKeydown(event) {
         var key = event.key;
-        var combo = _storedSettings.combo;
+        var combo = _settings.combo;
         // Detect combo press
         if (event.ctrlKey == combo.ctrlKey && event.shiftKey == combo.shiftKey && event.altKey == combo.altKey && key === combo.key) {
             _comboDown = true;
@@ -160,8 +183,7 @@ var Inject = (function() {
 
     function dom_onKeyup(event) {
         var key = event.key;
-        var combo = _storedSettings.combo;
-        Logger.log(_storedSettings);
+        var combo = _settings.combo;
         // Detect combo release
         if (event.ctrlKey == combo.ctrlKey && event.shiftKey == combo.shiftKey && event.altKey == combo.altKey && key === combo.key && _comboDown) {
             Logger.log('Key Combo Detected. Opening Chat.');

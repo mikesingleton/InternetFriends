@@ -12,6 +12,7 @@ body {
   height: 282px;
   overflow: hidden;
   margin: auto;
+  user-select: none;
 }
 
 .popupContainer {
@@ -62,6 +63,7 @@ td {
   align-items: center;
   justify-content: center;
   border: 1px solid var(--compUserColorDark);
+  user-select: auto;
 }
 
 .top-left-feature {
@@ -90,8 +92,8 @@ td {
   bottom: 3px;
   font-size: 84%;
   left: 3px;
-  opacity: 0;
   margin: 2px;
+  visibility: hidden;
 }
 
 .openChat {

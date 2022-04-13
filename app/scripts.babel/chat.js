@@ -5,10 +5,12 @@ var User = function(id, submitCallback) {
         _mousePosition = {},
         _userElement = null,
         _speechElement = null,
+        _textElement = null,
         _inputElement = null,
         _mouseElement = null,
         _mouseBGElm = null,
-        _mouseAudioVis = null,
+        _userFilter = "",
+        _flipped = false,
         _fadeoutTimer = -1,
         _submitCallback = submitCallback;
 
@@ -16,8 +18,9 @@ var User = function(id, submitCallback) {
     _this.init = function(id) {
         _id = id;
         _mousePosition = { x: 0, y: 0 };
-        _userElement = $('<div id="' + id + '" class="user" style="left: -16px;"></div>').appendTo($('body'));
+        _userElement = $('<div id="' + id + '" class="user" style="left: -16px; filter: ' + _userFilter + '"></div>').appendTo($('body'));
         _speechElement = $('<p class="speech fadeout"></p>').appendTo(_userElement);
+        _textElement = $('<p class="text"></p>').appendTo(_speechElement);
 
         Logger.log(`new User Initialized "${_id}"`);
         if (_id == "localuser") {
@@ -61,17 +64,21 @@ var User = function(id, submitCallback) {
     function repositionElements() {
         _userElement.css('top', _mousePosition.y + 'px');
         _userElement.css('left', _mousePosition.x + 'px');
+
+        if (!_flipped && _mousePosition.x > document.documentElement.clientWidth / 2) {
+            _flipped = true;
+            _userElement.css('transform', 'scaleX(-1) translateX(-7px)');
+            _textElement.css('transform', 'scaleX(-1)');
+            _inputElement.css('transform', 'scaleX(-1)');
+        } else if (_flipped && _mousePosition.x < document.documentElement.clientWidth / 2) {
+            _flipped = false;
+            _userElement.css('transform', '');
+            _textElement.css('transform', '');
+            _inputElement.css('transform', '');
+        }
     };
 
     // public functions ---------------------------------------------------------
-    _this.setAudioAmplitude = function(amplitude) {
-        Logger.log(amplitude);
-        if (amplitude > 80)
-            amplitude = 80;
-
-        _mouseAudioVis.css('transform', 'scale(' + amplitude / 80 + ')');
-    }
-
     _this.focusInput = function() {
         if (_inputElement) {
             _inputElement.blur();
@@ -94,17 +101,20 @@ var User = function(id, submitCallback) {
         let iroColor = new iro.Color(userColor);
         let hsv = iroColor.hsv;
 
-        // saturation must be greater than or equal to 50
+        // validate color values
+        hsv.v = 90;
         if (hsv.s < 50)
-            return;
+            hsv.s = 50;
+
+        _userFilter = "hue-rotate(" + (hsv.h - initColor.h) + "deg) saturate(" + (hsv.s / initColor.s * 100) + "%)";
 
         // add filter to mouse background element to change user color
-        _mouseBGElm.css('filter', "hue-rotate(" + (hsv.h - initColor.h) + "deg) saturate(" + (hsv.s / initColor.s * 100) + "%)");
+        _userElement.css('filter', _userFilter);
     }
 
     _this.say = function(message) {
         _speechElement.removeClass("fadeout");
-        _speechElement.html(message);
+        _textElement.html(message);
 
         var words = message.split(' ').length;
         var wordsPerMinute = 200;
@@ -201,7 +211,15 @@ var Chat = (function() {
     function message_onMousemove(data) {
         var user = getUser(data.userId);
         var y = data.y - _scrollPosition.y;
-        var x = data.x - _scrollPosition.x;
+        
+        // If x scroll potition is 0, scale position based on viewport
+        var x;
+        if (_scrollPosition.x === 0) {
+            x = ((data.vw / 100) * document.documentElement.clientWidth);
+        } else { // else use absolute value
+            x = data.x - _scrollPosition.x;
+        }
+
         user.setMousePosition(x, y);
     };
 

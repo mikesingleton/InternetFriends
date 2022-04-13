@@ -6,6 +6,7 @@ var signalhub = require('signalhub')
 var Background = (function() {
     // variables ----------------------------------------------------------------
     var _this = {},
+        _storedSettings = null,
         _local = true,
         _portManager = null,
         _guid = null,
@@ -32,58 +33,80 @@ var Background = (function() {
             s4() + '-' + s4() + s4() + s4();
     }
 
-    function connectToSwarm(roomCode) {
-        if (_swarms[roomCode])
+    function connectToSwarm(roomCode, callback) {
+        if (_swarms[roomCode] || _connectionAttempts[roomCode])
             return;
 
-        Logger.log('connecting to swarm ', roomCode);
+        // mark connection attempt so we don't make multiple attempts at the same time
+        _connectionAttempts[roomCode] = true;
 
-        var hub = signalhub(roomCode, _local ? ['localhost:8080'] : ['https://if-signalhub.herokuapp.com/'])
-        _swarms[roomCode] = swarm(hub, {
-            wrtc: require('wrtc') // don't need this if used in the browser
-        })
+        // retrieve settings before connecting to a new swarm
+        chrome.storage.sync.get(['if-settings'], function(result) {
+            _storedSettings = result['if-settings'];
 
-        _swarms[roomCode].on('peer', function(peer, id) {
-            Logger.log('connected to a new peer:', id)
-            Logger.log('total peers:', _swarms[roomCode].peers.length)
+            Logger.log('connecting to swarm ', roomCode);
 
-            // send connection message
+            // init connection message
             var connectionMessage = {
                 event: 'connected',
                 data: {
-                    source: 'peer',
-                    userId: _guid,
                     userColor: _storedSettings.userColor,
                 }
             }
 
-            peer.send(JSON.stringify(connectionMessage));
+            // send connection message to front end
+            connectionMessage.data.userId = 'localuser';
+            const foundRoom = _portManager.tellByRoomCode(roomCode, connectionMessage);
+            if (!foundRoom) {
+                disconnectFromSwarm(roomCode);
+                return;
+            }
 
-            // setup data listener
-            peer.on('data', (payload) => {
-                const message = JSON.parse(payload.toString())
-                message.data.source = 'peer'
-                message.data.userId = id
-                Logger.log(message);
-
-                // Forward the message to the chat window
-                const foundRoom = _portManager.tellByRoomCode(roomCode, message);
-                if (!foundRoom) {
-                    disconnectFromSwarm(roomCode)
-                }
+            var hub = signalhub(roomCode, _local ? ['localhost:8080'] : ['https://if-signalhub.herokuapp.com/'])
+            _swarms[roomCode] = swarm(hub, {
+                wrtc: require('wrtc') // don't need this if used in the browser
             })
-        })
 
-        _swarms[roomCode].on('disconnect', function(peer, id) {
-            Logger.log('disconnected from a peer:', id)
-            _portManager.tellByRoomCode(roomCode, {
-                event: 'disconnected',
-                data: {
-                    source: 'peer',
-                    userId: id
-                }
-            });
-        })
+            _swarms[roomCode].on('peer', function(peer, id) {
+                Logger.log('connected to a new peer:', id)
+                Logger.log('total peers:', _swarms[roomCode].peers.length)
+
+                // setup data listener
+                peer.on('data', (payload) => {
+                    const message = JSON.parse(payload.toString())
+                    message.data.source = 'peer'
+                    message.data.userId = id
+                    Logger.log(message);
+
+                    // Forward the message to the chat window
+                    const foundRoom = _portManager.tellByRoomCode(roomCode, message);
+                    if (!foundRoom) {
+                        disconnectFromSwarm(roomCode)
+                    }
+                })
+
+                // send connection message to peers on connection
+                connectionMessage.data.source = 'peer';
+                connectionMessage.data.userId = _guid;
+                peer.send(JSON.stringify(connectionMessage));
+            })
+
+            _swarms[roomCode].on('disconnect', function(peer, id) {
+                Logger.log('disconnected from a peer:', id)
+                _portManager.tellByRoomCode(roomCode, {
+                    event: 'disconnected',
+                    data: {
+                        source: 'peer',
+                        userId: id
+                    }
+                });
+            })
+            
+            // remove roomCode from list of _connectionAttempts
+            delete _connectionAttempts[roomCode];
+
+            callback();
+        });
     };
 
     function disconnectFromSwarm(roomCode) {
@@ -95,26 +118,15 @@ var Background = (function() {
 
     function sendMessageToSwarm(message, roomCode) {
         // if message if intended for a new swarm
-        if (!_swarms[roomCode] && !_connectionAttempts[roomCode]) {
-            // mark connection attempt so we don't make multiple at the same time
-            _connectionAttempts[roomCode] = true;
-
-            // retrieve settings before connecting to a new swarm
-            chrome.storage.sync.get(['if-settings'], function(result) {
-                _storedSettings = result['if-settings'];
-
-                // connect to the new swarm
-                connectToSwarm(roomCode);
-
-                // send the message to the swarm
+        if (!_swarms[roomCode]) {
+            // connect to the new swarm
+            connectToSwarm(roomCode, function () {
+                // once connected, send the message to the swarm
                 if (_swarms[roomCode]) {
                     _swarms[roomCode].peers.forEach((peer) => {
                         peer.send(JSON.stringify(message));
                     });
                 }
-
-                // remove roomCode from list of _connectionAttempts
-                delete _connectionAttempts[roomCode];
             });
         }
         // already connected, send the message to the swarm

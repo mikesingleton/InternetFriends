@@ -50,8 +50,8 @@ var Popup = (function() {
             _settings = {
                 combo: _storedSettings?.combo || _defaultCombo,
                 disabledSites: _storedSettings?.disabledSites || {},
-                enableChat: _storedSettings?.enableChat,
-                userColor: _storedSettings?.userColor || '#2196f3'
+                enableChat: _storedSettings?.enableChat === true || _storedSettings?.enableChat === undefined,
+                userColor: _storedSettings?.userColor || getRandomIroColor()
             }
 
             chrome.storage.sync.set({'if-settings': _settings}, function() {
@@ -138,6 +138,15 @@ var Popup = (function() {
             Logger.log('Set Settings:');
             Logger.log(_settings);
         })
+        
+        var _refreshText = document.getElementById('refresh');
+        _refreshText.style.visibility = "visible";
+    }
+
+    function getRandomIroColor () {
+        var iroColor = new iro.Color('{a: 1, h: 0, s: 70, v: 90}');
+        iroColor.hue += Math.random() * 360;
+        return iroColor.hsva;
     }
 
     function setComplementaryColors (iroColor) {
@@ -233,6 +242,9 @@ var Popup = (function() {
             Logger.log('Set Settings:');
             Logger.log(_settings);
         });
+        
+        var _refreshText = document.getElementById('refresh');
+        _refreshText.style.visibility = "visible";
     };
     
     function onEnableChatChanged(event) {
@@ -242,6 +254,9 @@ var Popup = (function() {
             Logger.log('Set Settings:');
             Logger.log(_settings);
         });
+        
+        var _refreshText = document.getElementById('refresh');
+        _refreshText.style.visibility = "visible";
     };
 
     return _this;

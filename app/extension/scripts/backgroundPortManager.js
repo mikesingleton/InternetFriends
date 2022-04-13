@@ -39,8 +39,13 @@ var backgroundPortManager = function (messageCallback, roomDisconnectCallback){
 		return url;
 	}
 
-	function getRoomCodeFromPort(port, url) {		
-		return url.host + " - " + port.sender.tab.title;
+	function getRoomCodeFromPort(port, url) {
+		// Room code is based on url and title
+		// e.g. 'www.google.com/search : test - Google Search'
+		// Ignoring url.search because many websites values unique to each user
+		// The goal is to group users based on the page they're currently on
+		var url = getUrl(port);
+		return url.host + url.pathname + " : " + port.sender.tab.title;
 	}
 
     // events -------------------------------------------------------------------
@@ -51,12 +56,12 @@ var backgroundPortManager = function (messageCallback, roomDisconnectCallback){
 			var websiteUrl = getUrl(port);
 
 			// If websiteUrl is present in disabledSites, InternetFriends is disabled for this site, return
-			if (settings.disabledSites[websiteUrl])
+			if (settings.disabledSites[websiteUrl.host])
 				return;
 
 			var tabId = port.sender.tab.id;
 			var source = port.name;
-			var roomCode = getRoomCodeFromPort(port, websiteUrl);
+			var roomCode = getRoomCodeFromPort(port);
 			
 			Logger.log('tab connected: ' + tabId)
 
