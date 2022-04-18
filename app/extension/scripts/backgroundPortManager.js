@@ -4,6 +4,7 @@ var backgroundPortManager = function (messageCallback, roomDisconnectCallback){
 	// variables ----------------------------------------------------------------
 	var _this 				    = {},
         _openTabs 			    = {},
+		_rooms					= {},
 		_messageCallback	    = null,
 		_roomDisconnectCallback	= null;
 	
@@ -42,8 +43,8 @@ var backgroundPortManager = function (messageCallback, roomDisconnectCallback){
 	function getRoomCodeFromPort(port, url) {
 		// Room code is based on url and title
 		// e.g. 'www.google.com/search : test - Google Search'
-		// Ignoring url.search because many websites values unique to each user
 		// The goal is to group users based on the page they're currently on
+		// Ignoring url.search because many websites url.search values are unique to each user
 		var url = getUrl(port);
 		return url.host + url.pathname + " : " + port.sender.tab.title;
 	}
@@ -78,6 +79,13 @@ var backgroundPortManager = function (messageCallback, roomDisconnectCallback){
 				_openTabs[tabId]['InternetFriends-chat'].postMessage({event: 'loaded'});
 			}
 
+			// Create room
+			if (!_rooms[roomCode])
+				_rooms[roomCode] = {};
+
+			// Add tab to room
+			_rooms[roomCode][tabId] = true;
+
 			// Setup Listeners
 			port.onMessage.addListener(function (event) { processMessage(event, tabId, source, roomCode) });
 			port.onDisconnect.addListener(function () { processTabPortDisconnect(tabId, source, roomCode) });
@@ -99,33 +107,31 @@ var backgroundPortManager = function (messageCallback, roomDisconnectCallback){
 		delete _openTabs[tabId][source];
 		if(source == 'InternetFriends-main') {
 			delete _openTabs[tabId];
+			delete _rooms[roomCode][tabId];
 
-			let found = false;
-			for (var tabId in _openTabs) {
-				if (Object.prototype.hasOwnProperty.call(_openTabs, tabId)) {
-					if(_openTabs[tabId]["InternetFriends-chat"] && getRoomCodeFromPort(_openTabs[tabId]["InternetFriends-chat"]) == roomCode) {
-						found = true;
-					}
-				}
-			}
+			let tabIds = Object.keys(_rooms[roomCode]);
 
-			if (!found)
+			// If there are no other tabs associated with this room code, disconnect
+			if (tabIds.length === 0)
                 _roomDisconnectCallback(roomCode);
 		}
 	};
 
 	// public functions ---------------------------------------------------------	
 	_this.tellByRoomCode = function (roomCode, data){
-        for (var tabId in _openTabs) {
-            if (Object.prototype.hasOwnProperty.call(_openTabs, tabId)) {
-                if(_openTabs[tabId]["InternetFriends-chat"] && getRoomCodeFromPort(_openTabs[tabId]["InternetFriends-chat"]) == roomCode) {
-                    _openTabs[tabId]["InternetFriends-chat"].postMessage(data);
-                    return true;
-                }
-            }
-        }
+		if (!_rooms[roomCode])
+			return false;
 
-        return false;
+		let tabIds = Object.keys(_rooms[roomCode]);
+		let success = false;
+		
+		// Loop through all tabs that are associated with the given room code
+		for (var tabId in tabIds) {
+        	success |= this.tellByTabId(tabId, data);
+		}
+
+		// If any tabs were found, this should return true
+		return success;
     };
     
     _this.tellByTabId = function (tabId, data){
@@ -135,6 +141,23 @@ var backgroundPortManager = function (messageCallback, roomDisconnectCallback){
         }
 
         return false;
+	};
+
+	_this.updateBadgeTextByRoomCode = function (roomCode, connected, peers) {
+		if (!_rooms[roomCode])
+		return false;
+
+		let tabIds = Object.keys(_rooms[roomCode]);
+		
+		// Loop through all tabs that are associated with the given room code
+		for (var tabId in tabIds) {
+			chrome.browserAction.setBadgeText(
+				{
+					text: peers,
+					tabId: tabId
+				}
+			);
+		}
 	};
 
 	// messages -----------------------------------------------------------------	

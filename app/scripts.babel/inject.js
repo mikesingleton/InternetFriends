@@ -91,7 +91,7 @@ var Inject = (function() {
     function getRandomIroColor () {
         var iroColor = new iro.Color('{a: 1, h: 0, s: 70, v: 90}');
         iroColor.hue += Math.random() * 360;
-        return iroColor.hsva;
+        return iroColor.hsla;
     }
 
     function getView(id) {

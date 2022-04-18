@@ -96,14 +96,13 @@ var User = function(id, submitCallback) {
     _this.setColor = function(userColor) {
         let initColor = { h: 207, s: 86, v: 95 };
         let iroColor = new iro.Color(userColor);
-        let hsv = iroColor.hsv;
+        let hsl = iroColor.hsl;
 
         // validate color values
-        hsv.v = 90;
-        if (hsv.s < 50)
-            hsv.s = 50;
+        if (hsl.s < 50)
+            hsl.s = 50;
 
-        _userFilter = "hue-rotate(" + (hsv.h - initColor.h) + "deg) saturate(" + (hsv.s / initColor.s * 100) + "%)";
+        _userFilter = "hue-rotate(" + (hsl.h - initColor.h) + "deg) saturate(" + (hsl.s / initColor.s * 100) + "%)";
 
         // add filter to mouse background element to change user color
         _userElement.css('filter', _userFilter);

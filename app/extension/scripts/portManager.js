@@ -1,12 +1,10 @@
 var portManager = function (source, messageCallback, disconnectCallback){
 	// variables ----------------------------------------------------------------
 	var _this 				= {},
-		_tabId				= -1,
 		_source				= "",
 		_port				= null,
 		_messageListener	= null,
-		_disconnectListener	= null,
-		_disconnectTimer 	= -1;
+		_disconnectListener	= null;
 	
 	// initialize ---------------------------------------------------------------
 	_this.init = function (source, messageCallback, disconnectCallback){

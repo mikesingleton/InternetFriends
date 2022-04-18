@@ -94,19 +94,19 @@ var Popup = (function() {
             var cursorURL = typeof chrome !== "undefined" && chrome.extension ? chrome.extension.getURL('../../images/aero_arrow.png') : '../images/aero_arrow.png';
             _mouseBGElm.style.backgroundImage = "url(" + cursorURL + ")";
             let initColor = { h: 207, s: 86, v: 95 };
-            let hsv = colorWheel.color.hsv;
-            _mouseBGElm.style.filter = "hue-rotate(" + (hsv.h - initColor.h) + "deg) saturate(" + (hsv.s / initColor.s * 100) + "%)";
+            let hsl = colorWheel.color.hsl;
+            _mouseBGElm.style.filter = "hue-rotate(" + (hsl.h - initColor.h) + "deg) saturate(" + (hsl.s / initColor.s * 100) + "%)";
 
             colorWheel.on('color:change', function(color, changes){
-                let hsv = color.hsv;
+                let hsl = color.hsl;
                 var _mouseBGElm = document.getElementById('fakeMouse');
-                _mouseBGElm.style.filter = "hue-rotate(" + (hsv.h - initColor.h) + "deg) saturate(" + (hsv.s / initColor.s * 100) + "%)";
+                _mouseBGElm.style.filter = "hue-rotate(" + (hsl.h - initColor.h) + "deg) saturate(" + (hsl.s / initColor.s * 100) + "%)";
                 document.documentElement.style.setProperty('--userColor', color.rgbString);
                 
                 // set complementary colors
                 setComplementaryColors(color);
 
-                _settings.userColor = color.hsva;
+                _settings.userColor = color.hslaString;
                 
                 // use timeout to prevent settings from being updated too quickly
                 if (_settingsTimeout)
@@ -146,7 +146,7 @@ var Popup = (function() {
     function getRandomIroColor () {
         var iroColor = new iro.Color('{a: 1, h: 0, s: 70, v: 90}');
         iroColor.hue += Math.random() * 360;
-        return iroColor.hsva;
+        return iroColor.hsla;
     }
 
     function setComplementaryColors (iroColor) {
@@ -159,7 +159,7 @@ var Popup = (function() {
         document.documentElement.style.setProperty('--websiteTextColor', websiteTextColor);
 
         // set alpha based on saturation
-        complementaryColor.alpha = .2 + (((complementaryColor.hsv.s - 50) / 50) * .8);
+        complementaryColor.alpha = .3 + (((complementaryColor.hsl.s - 50) / 50) * .2);
         document.documentElement.style.setProperty('--compUserColorLight', complementaryColor.rgbaString);
 
         // darken
