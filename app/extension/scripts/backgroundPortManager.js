@@ -16,7 +16,7 @@ var backgroundPortManager = function (messageCallback, roomDisconnectCallback){
 		// send messages from "background.js"
     	chrome.runtime.onConnect.addListener(processTabPortConnected);
 
-		Logger.log('backgroundPortManager init');
+		Logger.log('Internet Friends Background Port Manager Initialized');
 	};
 	
 	// private functions --------------------------------------------------------
@@ -64,31 +64,32 @@ var backgroundPortManager = function (messageCallback, roomDisconnectCallback){
 			var source = port.name;
 			var roomCode = getRoomCodeFromPort(port);
 			
-			Logger.log('tab connected: ' + tabId)
+			Logger.log('Tab Connected RoomCode: ' + roomCode + ' ID: ' + tabId);
 
 			// Add port to tab
 			if(!_openTabs[tabId]) 
 				_openTabs[tabId] = {};
 
 			_openTabs[tabId][source] = port;
-
-			if(_openTabs[tabId]['InternetFriends-chat'] &&
-				_openTabs[tabId]['InternetFriends-main'])
-			{
-				_openTabs[tabId]['InternetFriends-main'].postMessage({event: 'loaded'});
-				_openTabs[tabId]['InternetFriends-chat'].postMessage({event: 'loaded'});
-			}
-
+			
 			// Create room
 			if (!_rooms[roomCode])
 				_rooms[roomCode] = {};
 
 			// Add tab to room
 			_rooms[roomCode][tabId] = true;
-
+			
 			// Setup Listeners
 			port.onMessage.addListener(function (event) { processMessage(event, tabId, source, roomCode) });
 			port.onDisconnect.addListener(function () { processTabPortDisconnect(tabId, source, roomCode) });
+
+			// Post loaded message
+			if(_openTabs[tabId]['InternetFriends-chat'] &&
+				_openTabs[tabId]['InternetFriends-main'])
+			{
+				_openTabs[tabId]['InternetFriends-main'].postMessage({event: 'loaded'});
+				_openTabs[tabId]['InternetFriends-chat'].postMessage({event: 'loaded'});
+			}
 		});
 	};
     
@@ -104,7 +105,10 @@ var backgroundPortManager = function (messageCallback, roomDisconnectCallback){
 
 	function processTabPortDisconnect (tabId, source, roomCode){
 		// process the disconnect
-		delete _openTabs[tabId][source];
+		if (_openTabs[tabId]) {
+			delete _openTabs[tabId][source];
+		}
+
 		if(source == 'InternetFriends-main') {
 			delete _openTabs[tabId];
 			delete _rooms[roomCode][tabId];
@@ -122,12 +126,11 @@ var backgroundPortManager = function (messageCallback, roomDisconnectCallback){
 		if (!_rooms[roomCode])
 			return false;
 
-		let tabIds = Object.keys(_rooms[roomCode]);
 		let success = false;
 		
 		// Loop through all tabs that are associated with the given room code
-		for (var tabId in tabIds) {
-        	success |= this.tellByTabId(tabId, data);
+		for (var tabId in _rooms[roomCode]) {
+        	success ||= _this.tellByTabId(tabId, data);
 		}
 
 		// If any tabs were found, this should return true
@@ -143,21 +146,21 @@ var backgroundPortManager = function (messageCallback, roomDisconnectCallback){
         return false;
 	};
 
-	_this.updateBadgeTextByRoomCode = function (roomCode, connected, peers) {
+	_this.updateBadgeTextByRoomCode = function (roomCode, peers) {
 		if (!_rooms[roomCode])
-		return false;
-
-		let tabIds = Object.keys(_rooms[roomCode]);
+			return false;
 		
 		// Loop through all tabs that are associated with the given room code
-		for (var tabId in tabIds) {
+		for (var tabId in _rooms[roomCode]) {
 			chrome.browserAction.setBadgeText(
 				{
-					text: peers,
-					tabId: tabId
+					text: peers > 0 ? peers.toString() : '',
+					tabId: parseInt(tabId)
 				}
 			);
 		}
+
+		return true;
 	};
 
 	// messages -----------------------------------------------------------------	

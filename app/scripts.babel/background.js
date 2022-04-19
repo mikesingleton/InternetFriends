@@ -22,7 +22,7 @@ var Background = (function() {
             // receive post messages from 'inject.js' and any iframes
             _portManager = new backgroundPortManager(processMessageFromBrowser, processRoomDisconnect);
             _guid = guid();
-            chrome.browserAction.setBadgeBackgroundColor({color: _storedSettings.userColor });
+            chrome.browserAction.setBadgeBackgroundColor({ color: _storedSettings.userColor });
 
             // add listener for storage changes
             chrome.storage.onChanged.addListener(function (changes, namespace) {
@@ -54,11 +54,8 @@ var Background = (function() {
     }
 
     function connectToSwarm(roomCode, callback) {
-        if (_swarms[roomCode] || _connectionAttempts[roomCode])
+        if (_swarms[roomCode])
             return;
-
-        // mark connection attempt so we don't make multiple attempts at the same time
-        _connectionAttempts[roomCode] = true;
 
         Logger.log('connecting to swarm ', roomCode);
 
@@ -72,16 +69,10 @@ var Background = (function() {
 
         // send connection message to front end
         connectionMessage.data.userId = 'localuser';
-        const foundRoom = _portManager.tellByRoomCode(roomCode, connectionMessage);
-        if (!foundRoom) {
-            disconnectFromSwarm(roomCode);
-            return;
-        }
+        _portManager.tellByRoomCode(roomCode, connectionMessage);
 
         var hub = signalhub(roomCode, _local ? ['localhost:8080'] : ['https://if-signalhub.herokuapp.com/'])
-        _swarms[roomCode] = swarm(hub, {
-            wrtc: require('wrtc') // don't need this if used in the browser
-        })
+        _swarms[roomCode] = swarm(hub)
 
         _swarms[roomCode].on('peer', function(peer, id) {
             Logger.log('connected to a new peer:', id)
@@ -102,7 +93,7 @@ var Background = (function() {
             })
 
             // update the badge based on the number of peers
-            _portManager.updateBadgeByRoomCode(roomCode, true, _swarms[roomCode].peers.length);
+            _portManager.updateBadgeTextByRoomCode(roomCode, _swarms[roomCode].peers.length);
 
             // send connection message to peers on connection
             connectionMessage.data.source = 'peer';
@@ -119,18 +110,23 @@ var Background = (function() {
                     userId: id
                 }
             });
+            
+            // update the badge based on the number of peers
+            _portManager.updateBadgeTextByRoomCode(roomCode, _swarms[roomCode] ? _swarms[roomCode].peers.length : 0);
         })
-        
-        // remove roomCode from list of _connectionAttempts
-        delete _connectionAttempts[roomCode];
 
-        callback();
+        if (callback)
+            callback();
     };
 
     function disconnectFromSwarm(roomCode) {
         if (_swarms[roomCode]) {
+            Logger.log('disconnecting from swarm ', roomCode);
+
             _swarms[roomCode].close()
             delete _swarms[roomCode]
+            
+            Logger.log('disconnected');
         }
     };
 
