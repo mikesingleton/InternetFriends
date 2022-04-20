@@ -15,7 +15,7 @@ var Background = (function() {
         // receive post messages from 'inject.js' and any iframes
         _portManager = new backgroundPortManager(processMessageFromBrowser, processRoomDisconnect);
 
-        if (chrome) {
+        if (chrome && chrome.browserAction) {
             chrome.browserAction.setBadgeBackgroundColor({ color: IFSettings.userColor });
         
             // add listener for storage changes
@@ -155,7 +155,12 @@ var Background = (function() {
     return _this;
 }());
 
-// Wait for settings to initialize to init background
-IFEvents.addEventListener('settings.init', function () {
+// If IFSettings have not been initialized, wait for init event to be dispatched
+if (!IFSettings) {
+    IFEvents.addEventListener('settings.init', function () {
+        Background.init();
+    });
+} else {
+    // else, init now
     Background.init();
-});
+}

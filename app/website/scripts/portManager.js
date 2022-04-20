@@ -3,20 +3,15 @@ _portManagers = [];
 var portManager = function (source, messageCallback, disconnectCallback){
 	// variables ----------------------------------------------------------------
 	var _this 				= {},
-		_tabId				= 1,
-		_source				= "",
-		_roomCode			= "internetfriendswebsite",
-		_port				= null,
 		_messageListener	= null,
-		_disconnectListener	= null,
-		_disconnectTimer 	= -1;
-
-	_this.source = "";
+		_disconnectListener	= null;
 	
 	// initialize ---------------------------------------------------------------
 	_this.init = function (source, messageCallback, disconnectCallback){
-		_source = "InternetFriends-" + source;
-		_this.source = _source;
+		_this.tabId = 0;
+		_this.source = source;
+		_this.roomCode = "internetfriendswebsite";
+
 		_messageListener = messageCallback;
 		_disconnectListener = disconnectCallback;
 		_portManagers.push(this);
@@ -24,30 +19,27 @@ var portManager = function (source, messageCallback, disconnectCallback){
 		if (_backgroundPortManager)
 			_backgroundPortManager.processTabPortConnected(this);
 
-		// receive messages from "background.js"
-		Logger.log('portManager init', source);
+		Logger.log(`PortManager Initialized in "${source}"`);
 	};
 	
-	// public functions ---------------------------------------------------------
-	_this.postMessage = function (message) {
-		Logger.log(message);
-		if (_messageListener)
-			_messageListener(message);
-	}
+	// private functions --------------------------------------------------------
 
-	_this.disconnect = function () {
-		if (_disconnectListener)
-			_disconnectListener();
-	}
+	// events -------------------------------------------------------------------
+
+	// public functions ---------------------------------------------------------	
+	_this.port_onMessage = function (message){
+		// call the listener callback
+		if (_messageListener) _messageListener(message);
+	};
 
 	_this.tell = function (event, data){
 		var data = data || {};
 		
 		if(_backgroundPortManager != null) {
-			_backgroundPortManager.postMessage({
+			_backgroundPortManager.processMessage({
 				event	: event,
 				data	: data
-			}, _tabId, _source, _roomCode);
+			}, _this.tabId, _this.source, _this.roomCode);
 		}
 	};
 
