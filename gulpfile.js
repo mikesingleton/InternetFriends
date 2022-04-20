@@ -35,7 +35,7 @@ function jsBabel() {
 function jsBrowserify() {
   return browserify({
     entries: 'app/scripts/background.js',
-    debug: true
+    debug: false
   })
   .bundle()
   .pipe(fs.createWriteStream('app/scripts/bundle.js'));

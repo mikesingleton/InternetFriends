@@ -6,7 +6,7 @@ var signalhub = require('signalhub')
 var Background = (function() {
     // variables ----------------------------------------------------------------
     var _this = {},
-        _local = true,
+        _local = false,
         _portManager = null,
         _swarms = {};
 

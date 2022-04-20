@@ -24,7 +24,11 @@
             "http://www.internetfriends.social/*",
             "https://www.internetfriends.social/*",
             "http://internetfriends.social/*",
-            "https://internetfriends.social/*"
+            "https://internetfriends.social/*",
+            "http://internetfriends-website.web.app/",
+            "https://internetfriends-website.web.app/",
+            "http://internetfriends-website.firebaseapp.com/",
+            "https://internetfriends-website.firebaseapp.com/"
         ],
         "css": ["styles/inject.css"],
         "js": [

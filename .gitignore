@@ -1,11 +1,12 @@
 node_modules
 temp
 .tmp
+.firebase
 dist
 .sass-cache
 app/bower_components
-test/bower_components
 website
 package
 app/scripts
 *.zip
+.firebase/hosting.d2Vic2l0ZQ.cache
