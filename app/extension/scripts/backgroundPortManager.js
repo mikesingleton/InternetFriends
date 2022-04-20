@@ -51,46 +51,46 @@ var backgroundPortManager = function (messageCallback, roomDisconnectCallback){
 
     // events -------------------------------------------------------------------
 	function processTabPortConnected (port){
-		// Get Settings. Only process if site not disabled
-		chrome.storage.sync.get(['if-settings'], function(result) {
-			var settings = result['if-settings'];
-			var websiteUrl = getUrl(port);
+		// Only process if site not disabled
+		var websiteUrl = getUrl(port);
 
-			// If websiteUrl is present in disabledSites, InternetFriends is disabled for this site, return
-			if (settings.disabledSites[websiteUrl.host])
-				return;
+		// If websiteUrl is present in disabledSites, InternetFriends is disabled for this site, return
+		if (IFSettings.disabledSites[websiteUrl.host])
+			return;
 
-			var tabId = port.sender.tab.id;
-			var source = port.name;
-			var roomCode = getRoomCodeFromPort(port);
-			
-			Logger.log('Tab Connected RoomCode: ' + roomCode + ' ID: ' + tabId);
+		var tabId = port.sender.tab.id;
+		var source = port.name;
+		var roomCode = getRoomCodeFromPort(port);
+		
+		Logger.log('Tab Connected RoomCode: ' + roomCode + ' ID: ' + tabId);
 
-			// Add port to tab
-			if(!_openTabs[tabId]) 
-				_openTabs[tabId] = {};
+		// Add port to tab
+		if(!_openTabs[tabId]) 
+			_openTabs[tabId] = {};
 
-			_openTabs[tabId][source] = port;
-			
-			// Create room
-			if (!_rooms[roomCode])
-				_rooms[roomCode] = {};
+		_openTabs[tabId][source] = port;
+		
+		// Create room
+		if (!_rooms[roomCode])
+			_rooms[roomCode] = {};
 
-			// Add tab to room
-			_rooms[roomCode][tabId] = true;
-			
+		// Add tab to room
+		_rooms[roomCode][tabId] = true;
+
+		// After both sources have connected
+		if(_openTabs[tabId]['InternetFriends-chat'] &&
+			_openTabs[tabId]['InternetFriends-main'])
+		{
 			// Setup Listeners
-			port.onMessage.addListener(function (event) { processMessage(event, tabId, source, roomCode) });
-			port.onDisconnect.addListener(function () { processTabPortDisconnect(tabId, source, roomCode) });
+			_openTabs[tabId]['InternetFriends-chat'].onMessage.addListener(function (event) { processMessage(event, tabId, 'InternetFriends-chat', roomCode) });
+			_openTabs[tabId]['InternetFriends-main'].onMessage.addListener(function (event) { processMessage(event, tabId, 'InternetFriends-main', roomCode) });
+			_openTabs[tabId]['InternetFriends-chat'].onDisconnect.addListener(function () { processTabPortDisconnect(tabId, 'InternetFriends-chat', roomCode) });
+			_openTabs[tabId]['InternetFriends-main'].onDisconnect.addListener(function () { processTabPortDisconnect(tabId, 'InternetFriends-main', roomCode) });
 
-			// Post loaded message
-			if(_openTabs[tabId]['InternetFriends-chat'] &&
-				_openTabs[tabId]['InternetFriends-main'])
-			{
-				_openTabs[tabId]['InternetFriends-main'].postMessage({event: 'loaded'});
-				_openTabs[tabId]['InternetFriends-chat'].postMessage({event: 'loaded'});
-			}
-		});
+			// Post loaded messages
+			_openTabs[tabId]['InternetFriends-chat'].postMessage({event: 'loaded'});
+			_openTabs[tabId]['InternetFriends-main'].postMessage({event: 'loaded'});
+		}
 	};
     
     function processMessage (message, tabId, source, roomCode) {

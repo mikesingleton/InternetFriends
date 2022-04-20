@@ -8,20 +8,13 @@ var Popup = (function() {
         _enableForSite = null,
         _enableChat = null,
         _keyComboInput = null,
-        _storedSettings = null,
-        _settings = null,
         _settingsTimeout = null,
-        _defaultCombo = {
-            ctrlKey: true,
-            shiftKey: true,
-            altKey: false,
-            key: "Enter"
-        };
+        _userColor = null;
 
     // initialize ---------------------------------------------------------------
     _this.init = function() {
         Logger.log('init popup');
-        
+
         if (!chrome || !chrome.storage || !chrome.tabs)
            return;
 
@@ -32,88 +25,67 @@ var Popup = (function() {
         _enableChat = document.getElementById('enableChat');
         _keyComboInput = document.getElementById('keyComboInput');
 
-        // Get chrome information
+        // Populate values
         
         chrome.tabs.query({'active': true, 'currentWindow': true}, function (tabs) {
             let url = new URL(tabs[0].url);
             _websiteUrl = url ? url.host : " "
             _website.innerHTML = _websiteUrl;
+
+            _enableForSite.checked = !IFSettings.disabledSites[_websiteUrl];
+        });
+
+        _enableChat.checked = IFSettings.enableChat;
+        _keyComboInput.value = keyComboToText(IFSettings.combo);
+        let userIroColor = new iro.Color(IFSettings.userColor);
+        
+        // validate
+        userIroColor.value = 90;
+        if (userIroColor.saturation < 50)
+            userIroColor.saturation = 50;
+
+        document.documentElement.style.setProperty('--userColor', userIroColor.rgbString);
+
+        // set complementary colors
+        setComplementaryColors(userIroColor);
+
+        // Init ColorWheel
+
+        var colorWheel = new iro.ColorPicker("#colorWheelDemo", {
+            width: 100,
+            padding: -4,
+            color: userIroColor,
+            layout: [
+                { 
+                component: iro.ui.Wheel,
+                options: {} 
+                }
+            ]
         });
         
-        // Store values
-        
-        chrome.storage.sync.get(['if-settings'], function(result) {
-            Logger.log('Stored Settings:');
-            _storedSettings = result['if-settings'];
-            Logger.log(_storedSettings);
-            
-            _settings = {
-                combo: _storedSettings?.combo || _defaultCombo,
-                disabledSites: _storedSettings?.disabledSites || {},
-                enableChat: _storedSettings?.enableChat === true || _storedSettings?.enableChat === undefined,
-                userColor: _storedSettings?.userColor || getRandomIroColor()
-            }
+        var _mouseBGElm = document.getElementById('fakeMouse');
+        var cursorURL = typeof chrome !== "undefined" && chrome.extension ? chrome.extension.getURL('../../images/aero_arrow.png') : '../images/aero_arrow.png';
+        _mouseBGElm.style.backgroundImage = "url(" + cursorURL + ")";
+        let initColor = { h: 207, s: 86, v: 95 };
+        let hsl = colorWheel.color.hsl;
+        _mouseBGElm.style.filter = "hue-rotate(" + (hsl.h - initColor.h) + "deg) saturate(" + (hsl.s / initColor.s * 100) + "%)";
 
-            chrome.storage.sync.set({'if-settings': _settings}, function() {
-                Logger.log('Set Settings:');
-                Logger.log(_settings);
-            });
-            
-            // Populate values
-
-            _enableForSite.checked = !_settings.disabledSites[_websiteUrl];
-            _enableChat.checked = _settings.enableChat;
-            _keyComboInput.value = keyComboToText(_settings.combo);
-            let userIroColor = new iro.Color(_settings.userColor);
-            
-            // validate
-            userIroColor.value = 90;
-            if (userIroColor.saturation < 50)
-                userIroColor.saturation = 50;
-
-            document.documentElement.style.setProperty('--userColor', userIroColor.rgbString);
-
-            // set complementary colors
-            setComplementaryColors(userIroColor);
-
-            // Init ColorWheel
-
-            var colorWheel = new iro.ColorPicker("#colorWheelDemo", {
-                width: 100,
-                padding: -4,
-                color: userIroColor,
-                layout: [
-                    { 
-                    component: iro.ui.Wheel,
-                    options: {} 
-                    }
-                ]
-            });
-            
+        colorWheel.on('color:change', function(color, changes){
+            let hsl = color.hsl;
             var _mouseBGElm = document.getElementById('fakeMouse');
-            var cursorURL = typeof chrome !== "undefined" && chrome.extension ? chrome.extension.getURL('../../images/aero_arrow.png') : '../images/aero_arrow.png';
-            _mouseBGElm.style.backgroundImage = "url(" + cursorURL + ")";
-            let initColor = { h: 207, s: 86, v: 95 };
-            let hsl = colorWheel.color.hsl;
             _mouseBGElm.style.filter = "hue-rotate(" + (hsl.h - initColor.h) + "deg) saturate(" + (hsl.s / initColor.s * 100) + "%)";
+            document.documentElement.style.setProperty('--userColor', color.rgbString);
+            
+            // set complementary colors
+            setComplementaryColors(color);
 
-            colorWheel.on('color:change', function(color, changes){
-                let hsl = color.hsl;
-                var _mouseBGElm = document.getElementById('fakeMouse');
-                _mouseBGElm.style.filter = "hue-rotate(" + (hsl.h - initColor.h) + "deg) saturate(" + (hsl.s / initColor.s * 100) + "%)";
-                document.documentElement.style.setProperty('--userColor', color.rgbString);
-                
-                // set complementary colors
-                setComplementaryColors(color);
-
-                _settings.userColor = color.hslaString;
-                
-                // use timeout to prevent settings from being updated too quickly
-                if (_settingsTimeout)
-                    clearTimeout(_settingsTimeout);
-                _settingsTimeout = setTimeout(updateSettings, 500);
-            })
-        });
+            _userColor = color.hslaString;
+            
+            // use timeout to prevent settings from being updated too quickly
+            if (_settingsTimeout)
+                clearTimeout(_settingsTimeout);
+            _settingsTimeout = setTimeout(updateUserColor, 500);
+        })
 
         // Register Event Listeners
 
@@ -133,20 +105,8 @@ var Popup = (function() {
     };
 
     // private functions --------------------------------------------------------
-    function updateSettings () {
-        chrome.storage.sync.set({'if-settings': _settings}, function() {
-            Logger.log('Set Settings:');
-            Logger.log(_settings);
-        })
-        
-        var _refreshText = document.getElementById('refresh');
-        _refreshText.style.visibility = "visible";
-    }
-
-    function getRandomIroColor () {
-        var iroColor = new iro.Color('{a: 1, h: 0, s: 70, v: 90}');
-        iroColor.hue += Math.random() * 360;
-        return iroColor.hsla;
+    function updateUserColor () {
+        chrome.storage.sync.set({'userColor': _userColor});
     }
 
     function setComplementaryColors (iroColor) {
@@ -202,13 +162,8 @@ var Popup = (function() {
         if (key === "Control" || key === "Shift" || key === "Alt")
             return;
 
-        // combo complete, set combo and blur input
-        _settings.combo = combo;
-        
-        chrome.storage.sync.set({'if-settings': _settings}, function() {
-            Logger.log('Set Settings:');
-            Logger.log(_settings);
-        });
+        // combo complete, set combo and blur input        
+        chrome.storage.sync.set({'combo': combo});
 
         _keyComboInput.blur();
     };
@@ -232,28 +187,21 @@ var Popup = (function() {
         _colorWheelContainer.style.visibility = "hidden";
     };
     
-    function onEnableForSiteChanged(event) {    
+    function onEnableForSiteChanged(event) {
+        let disabledSites = IFSettings.disabledSites;
         if (event.currentTarget.checked)
-            delete _settings.disabledSites[_websiteUrl];
+            delete disabledSites[_websiteUrl];
         else
-            _settings.disabledSites[_websiteUrl] = true;
+        disabledSites[_websiteUrl] = true;
         
-        chrome.storage.sync.set({'if-settings': _settings}, function() {
-            Logger.log('Set Settings:');
-            Logger.log(_settings);
-        });
+        chrome.storage.sync.set({'disabledSites': disabledSites});
         
         var _refreshText = document.getElementById('refresh');
         _refreshText.style.visibility = "visible";
     };
     
     function onEnableChatChanged(event) {
-        _settings.enableChat = event.currentTarget.checked;
-        
-        chrome.storage.sync.set({'if-settings': _settings}, function() {
-            Logger.log('Set Settings:');
-            Logger.log(_settings);
-        });
+        chrome.storage.sync.set({'enableChat': event.currentTarget.checked});
         
         var _refreshText = document.getElementById('refresh');
         _refreshText.style.visibility = "visible";
@@ -262,4 +210,14 @@ var Popup = (function() {
     return _this;
 }());
 
-document.addEventListener("DOMContentLoaded", function() { new Popup.init(); }, false);
+document.addEventListener("DOMContentLoaded", function() {
+    // If IFSettings have not been initialized, wait for init event to be dispatched
+    if (!IFSettings) {
+        IFEvents.addEventListener('settings.init', function () {
+            new Popup.init();
+        });
+    } else {
+        // else, init now
+        new Popup.init();
+    }
+}, false);

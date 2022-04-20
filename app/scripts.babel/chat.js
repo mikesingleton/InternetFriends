@@ -135,7 +135,6 @@ var User = function(id, submitCallback) {
 var Chat = (function() {
     // variables ----------------------------------------------------------------
     var _this = {},
-        _storedSettings = null,
         _portManager = null,
         _users = {},
         _scrollPosition = {},
@@ -144,19 +143,16 @@ var Chat = (function() {
     // initialize ---------------------------------------------------------------
     _this.init = function() {
         Logger.log('Chat View Initialized')
-        chrome.storage.sync.get(['if-settings'], function(result) {
-			_storedSettings = result['if-settings'];
-            _portManager = new portManager("chat", onMessage);
-            _scrollPosition = { x: 0, y: 0 };
-        });
+        _portManager = new portManager("chat", onMessage);
+        _scrollPosition = { x: 0, y: 0 };
     };
 
     // events -------------------------------------------------------------------
     function onMessage(message) {
         Logger.log('got chat message', message)
         switch (message.event) {
-            case 'connected':
-                message_onConnected(message.data);
+            case 'userInfo':
+                message_onUserInfo(message.data);
                 break;
             case 'scroll':
                 message_onScroll(message.data);
@@ -175,7 +171,7 @@ var Chat = (function() {
                 break;
             case 'userchat':
                 // only process 'userchat' messages if chat is enabled
-                if (_storedSettings.enableChat)
+                if (IFSettings.enableChat)
                     message_onUserchat(message.data);
                 break;
             case 'disconnected':
@@ -198,7 +194,7 @@ var Chat = (function() {
     };
 
     // messages -----------------------------------------------------------------
-    function message_onConnected(data) {
+    function message_onUserInfo(data) {
         var user = getUser(data.userId);
         user.setColor(data.userColor);
     }
@@ -253,4 +249,14 @@ var Chat = (function() {
     return _this;
 }());
 
-document.addEventListener("DOMContentLoaded", function() { new Chat.init(); }, false);
+document.addEventListener("DOMContentLoaded", function() {
+    // If IFSettings have not been initialized, wait for init event to be dispatched
+    if (!IFSettings) {
+        IFEvents.addEventListener('settings.init', function () {
+            new Chat.init();
+        });
+    } else {
+        // else, init now
+        new Chat.init();
+    }
+}, false);

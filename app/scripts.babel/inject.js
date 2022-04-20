@@ -7,93 +7,54 @@ var Inject = (function() {
 
     // variables ----------------------------------------------------------------
     var _this = {},
-        _settings = null,
         _views = {},
         _container = null,
         _portManager = null,
-        _comboDown = false,
-        _defaultCombo = {
-            ctrlKey: true,
-            shiftKey: true,
-            altKey: false,
-            key: "Enter"
-        };
+        _comboDown = false;
 
     // initialize ---------------------------------------------------------------
     _this.init = function() {
         Logger.log(`Internet Friends Initializing Room "${window.location.host + window.location.pathname} : ${document.title}"`);
-        chrome.storage.sync.get(['if-settings'], function(result) {
-			let storedSettings = result['if-settings'];
-            
-            _settings = {
-                combo: storedSettings?.combo || _defaultCombo,
-                disabledSites: storedSettings?.disabledSites || {},
-                enableChat: storedSettings?.enableChat === true || storedSettings?.enableChat === undefined,
-                userColor: storedSettings?.userColor || getRandomIroColor()
-            }
-            
-            chrome.storage.sync.set({'if-settings': _settings}, function() {
-                Logger.log('Set Settings:');
-                Logger.log(_settings);
-            });
 
-			// If websiteUrl is present in disabledSites, InternetFriends is disabled for this site, return
-            let websiteUrl = window.location.host;
-			if (_settings.disabledSites[websiteUrl]) {
-                Logger.log('Website is disabled. Exiting.');
-                return;
-            }
+        // If websiteUrl is present in disabledSites, InternetFriends is disabled for this site, return
+        let websiteUrl = window.location.host;
+        if (IFSettings.disabledSites[websiteUrl]) {
+            Logger.log('Website is disabled. Exiting.');
+            return;
+        }
 
-            // create the main container
-            _container = $('<div />', { id: ID.CONTAINER });
-            _container.appendTo(document.body);
+        // create the main container
+        _container = $('<div />', { id: ID.CONTAINER });
+        _container.appendTo(document.body);
 
-            // add the "chat" iframe
-            getView('chat', _container);
+        // add the "chat" iframe
+        getView('chat', _container);
 
-            // setup port manager to communicate with background.js
-            _portManager = new portManager("main", onMessage, onDisconnect);
-            _portManager.tell("tabInit");
+        // setup port manager to communicate with background.js
+        _portManager = new portManager("main", onMessage, onDisconnect);
+        _portManager.tell("tabInit");
 
-            // add event listeners
-            document.addEventListener("scroll", dom_onScroll, false);
-            document.addEventListener("mouseover", dom_onMousemove, false);
-            document.addEventListener("mousemove", dom_onMousemove, false);
-            document.addEventListener("mouseenter", dom_onMouseenter, false);
-            document.addEventListener("mouseleave", dom_onMouseleave, false);
-            document.addEventListener("webkitvisibilitychange", dom_onVisibilityChange, false);
-            document.addEventListener("msvisibilitychange", dom_onVisibilityChange, false);
+        // add event listeners
+        document.addEventListener("scroll", dom_onScroll, false);
+        document.addEventListener("mouseover", dom_onMousemove, false);
+        document.addEventListener("mousemove", dom_onMousemove, false);
+        document.addEventListener("mouseenter", dom_onMouseenter, false);
+        document.addEventListener("mouseleave", dom_onMouseleave, false);
+        document.addEventListener("webkitvisibilitychange", dom_onVisibilityChange, false);
+        document.addEventListener("msvisibilitychange", dom_onVisibilityChange, false);
 
-            // if chat is not enabled, return
-            if (!_settings.enableChat) {
-                Logger.log('Chat disabled. Disabling Key Combo Listeners.');
-                return;
-            }
+        // if chat is not enabled, return
+        if (!IFSettings.enableChat) {
+            Logger.log('Chat disabled. Disabling Key Combo Listeners.');
+            return;
+        }
 
-            // only detect key presses if chat is enabled
-            document.addEventListener("keydown", dom_onKeydown, false);
-            document.addEventListener("keyup", dom_onKeyup, false);
-        });
-
-        // add listener for storage changes
-        chrome.storage.onChanged.addListener(function (changes, namespace) {
-            for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
-                Logger.log(`Storage key "${key}" in namespace "${namespace}" changed.`);
-
-                // update settings
-                if (key === "if-settings")
-                    _settings = newValue;
-            }
-        });
+        // only detect key presses if chat is enabled
+        document.addEventListener("keydown", dom_onKeydown, false);
+        document.addEventListener("keyup", dom_onKeyup, false);
     };
 
     // private functions --------------------------------------------------------
-    function getRandomIroColor () {
-        var iroColor = new iro.Color('{a: 1, h: 0, s: 70, v: 90}');
-        iroColor.hue += Math.random() * 360;
-        return iroColor.hsla;
-    }
-
     function getView(id) {
         // return the view if it's already created
         if (_views[id]) return _views[id];
@@ -179,11 +140,11 @@ var Inject = (function() {
 
     function dom_onKeydown(event) {
         var key = event.key;
-        var combo = _settings.combo;
+        var combo = IFSettings.combo;
         // Detect combo press
         if (event.ctrlKey == combo.ctrlKey && event.shiftKey == combo.shiftKey && event.altKey == combo.altKey && key === combo.key) {
             // If the combo does not contain any modifiers, only trigger when the document body has focus, otherwise return
-            if (!combo.ctrlKey && !combo.shiftKey && !combo.altKey && !document.hasFocus())
+            if (!combo.ctrlKey && !combo.shiftKey && !combo.altKey && document.activeElement !== document.body)
                 return;
 
             _comboDown = true;
@@ -193,7 +154,7 @@ var Inject = (function() {
 
     function dom_onKeyup(event) {
         var key = event.key;
-        var combo = _settings.combo;
+        var combo = IFSettings.combo;
         // Detect combo release
         if (event.ctrlKey == combo.ctrlKey && event.shiftKey == combo.shiftKey && event.altKey == combo.altKey && key === combo.key && _comboDown) {
             Logger.log('Key Combo Detected. Opening Chat.');
@@ -220,7 +181,18 @@ var isWebRTCSupported = navigator.getUserMedia ||
     navigator.msGetUserMedia ||
     window.RTCPeerConnection;
 
-if (isWebRTCSupported)
-    document.addEventListener("DOMContentLoaded", function() { Inject.init(); }, false);
-else
+if (isWebRTCSupported) {
+    document.addEventListener("DOMContentLoaded", function() {
+        // If IFSettings have not been initialized, wait for init event to be dispatched
+        if (!IFSettings) {
+            IFEvents.addEventListener('settings.init', function () {
+                Inject.init();
+            });
+        } else {
+            // else, init now
+            Inject.init();
+        }
+    }, false);
+} else {
     console.log("InternetFriends does not work without WebRTC support!"); // use console log here so it's logged regardless of whether general logging is enabled
+}

@@ -57,9 +57,6 @@ function chromeManifest(cb) {
     }))
     .pipe(debug())
     .pipe($.if('*.css', $.cleanCss({compatibility: '*'})))
-    //.pipe($.if('*.js', $.sourcemaps.init()))
-    //.pipe($.if('*.js', $.uglify()))
-    //.pipe($.if('*.js', $.sourcemaps.write('.')))
     .pipe(dest('dist'));
 }
 
@@ -70,19 +67,13 @@ function res(cb) {
   return src(manifest.web_accessible_resources, { cwd: './app/', base: './app/', allowEmpty: true })
     .pipe(debug())
     .pipe($.if('*.css', $.cleanCss({compatibility: '*'})))
-    //.pipe($.if('*.js', $.sourcemaps.init()))
-    //.pipe($.if('*.js', $.uglify()))
-    //.pipe($.if('*.js', $.sourcemaps.write('.')))
     .pipe(dest('dist'));
 }
 
 function extensionHtml(cb) {
   return src('**/*.html', { cwd: './app/extension/', base: './app/extension/' })
     .pipe($.useref({searchPath: ['.tmp', 'app', '.']}))
-    //.pipe($.sourcemaps.init())
-    //.pipe($.if('*.js', $.uglify()))
     .pipe($.if('*.css', $.cleanCss({compatibility: '*'})))
-    //.pipe($.sourcemaps.write())
     .pipe($.if('*.html', $.htmlmin({
       collapseWhitespace: true,
       minifyCSS: true,
@@ -141,9 +132,6 @@ function websiteManifest(cb){
       ...manifest.content_scripts[0].js
     ], { cwd: './app/', base: './app/', allowEmpty: true })
     .pipe($.if('*.css', $.cleanCss({compatibility: '*'})))
-    //.pipe($.if('*.js', $.sourcemaps.init()))
-    //.pipe($.if('*.js', $.uglify()))
-    //.pipe($.if('*.js', $.sourcemaps.write('.')))
     .pipe(dest('./website'));
 }
 
@@ -153,18 +141,12 @@ function websiteScripts(cb){
     .pipe($.babel({
       presets: ['@babel/env']
     }))
-    //.pipe($.if('*.js', $.sourcemaps.init()))
-    //.pipe($.if('*.js', $.uglify()))
-    //.pipe($.if('*.js', $.sourcemaps.write('.')))
     .pipe(dest('website/scripts'));
 }
 
 function websiteExtras(cb){
   return src(['!*.js', '**/*'], { cwd: './app/website/', base: './app/website/' })
-    //.pipe($.sourcemaps.init())
-    //.pipe($.if('*.js', $.uglify()))
     .pipe($.if('*.css', $.cleanCss({compatibility: '*'})))
-    //.pipe($.sourcemaps.write())
     .pipe($.if('*.html', $.htmlmin({
       collapseWhitespace: true,
       minifyCSS: true,

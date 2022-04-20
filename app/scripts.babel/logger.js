@@ -1,4 +1,4 @@
 var debug = true;
 var Logger = {
-    log: debug ? console.log.bind(window.console) : function(){}
+    log: debug ? console.log.bind(console) : function(){}
 };
