@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "InternetFriends",
+    "message": "Internet Friends",
     "description": "The name of the application"
   },
   "appDescription": {
-    "message": "Bump into other people when browsing the internet",
+    "message": "Bump into other people when browsing the internet.",
     "description": "The description of the application"
   }
 }

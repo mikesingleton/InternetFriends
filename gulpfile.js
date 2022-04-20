@@ -53,7 +53,7 @@ function chromeManifest(cb) {
   var debug = require('gulp-debug');
   return src('app/manifest.json')
     .pipe(manifest({
-      buildnumber: true
+      buildnumber: false
     }))
     .pipe(debug())
     .pipe($.if('*.css', $.cleanCss({compatibility: '*'})))
@@ -113,9 +113,9 @@ function extensionScripts(cb) {
 
 function package(cb) {
   var manifest = require('./dist/manifest.json');
-  return gulp.src('dist/**')
+  return src('dist/**')
       .pipe($.zip('InternetFriends-' + manifest.version + '.zip'))
-      .pipe(gulp.dest('package'));
+      .pipe(dest('package'));
 }
 
 // website -----------------------------------------------------------------	
