@@ -1,7 +1,7 @@
 {
     "name": "__MSG_appName__",
     "version": "1.0.0",
-    "manifest_version": 2,
+    "manifest_version": 3,
     "description": "__MSG_appDescription__",
     "icons": {
         "16": "images/icon-16.png",
@@ -10,11 +10,12 @@
     "default_locale": "en",
     "incognito": "split",
     "background": {
-        "page": "html/background.html"
+        "service_worker": "scripts/bundle.js"
     },
     "permissions": [
         "storage",
-        "activeTab"
+        "activeTab",
+        "tabs"
     ],
     "content_scripts": [{
         "matches": [
@@ -42,19 +43,24 @@
         "run_at": "document_start"
     }],
     "web_accessible_resources": [
-        "scripts/logger.js",
-        "scripts/settings.js",
-        "scripts/backgroundPortManager.js",
-        "scripts/bundle.js",
-        "scripts/popup.js",
-        "html/iframe/chat.html",
-        "scripts/chat.js",
-        "styles/core.css",
-        "styles/chat.css",
-        "styles/slider.css",
-        "styles/popup.css"
+        {
+            "resources": [
+                "scripts/logger.js",
+                "scripts/settings.js",
+                "scripts/backgroundPortManager.js",
+                "scripts/bundle.js",
+                "scripts/popup.js",
+                "html/iframe/chat.html",
+                "scripts/chat.js",
+                "styles/core.css",
+                "styles/chat.css",
+                "styles/slider.css",
+                "styles/popup.css"
+            ],
+            "matches": ["*://*/*"]
+        }
     ],
-    "browser_action": {
+    "action": {
         "default_popup": "html/popup.html",
         "default_icon": {
             "19": "images/icon-19.png",

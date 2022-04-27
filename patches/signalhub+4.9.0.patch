@@ -1,0 +1,29 @@
+diff --git a/node_modules/signalhub/index.js b/node_modules/signalhub/index.js
+index dffd175..3488910 100644
+--- a/node_modules/signalhub/index.js
++++ b/node_modules/signalhub/index.js
+@@ -103,16 +103,18 @@ SignalHub.prototype.close = function (cb) {
+   }
+ }
+ 
+-function broadcast (app, url, channel, message, cb) {
+-  return nets({
++async function broadcast (app, url, channel, message, cb) {
++  return await fetch(url + '/v1/' + app + '/' + channel, {
+     method: 'POST',
+-    json: message,
+-    url: url + '/v1/' + app + '/' + channel
+-  }, function (err, res) {
++    headers: {
++      'Content-Type': 'application/json'
++    },
++    body: JSON.stringify(message)
++  }).catch(function (err, res) {
+     if (err) return cb(err)
+     if (res.statusCode !== 200) return cb(new Error('Bad status: ' + res.statusCode))
+     cb()
+-  })
++  });
+ }
+ 
+ function noop () {}

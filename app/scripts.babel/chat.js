@@ -27,7 +27,7 @@ var User = function(id, submitCallback) {
             _inputElement = $('<span contenteditable="true" class="input"></span>').appendTo(_userElement);
             setupInputElement();
         } else {
-            var cursorURL = typeof chrome !== "undefined" && chrome.extension ? chrome.extension.getURL('../../images/aero_arrow.png') : './images/aero_arrow.png';
+            var cursorURL = typeof chrome !== "undefined" && chrome.runtime ? chrome.runtime.getURL('../../images/aero_arrow.png') : './images/aero_arrow.png';
             _mouseElement = $('<div class="fakeMouse"></div>').appendTo(_userElement);
             _mouseBGElm = $('<div class="fakeMouseBackgroundColor"></div>').appendTo(_mouseElement);
             _mouseBGElm.css({ 'background-image': 'url(' + cursorURL + ')' });

@@ -152,7 +152,7 @@ var backgroundPortManager = function (messageCallback, roomDisconnectCallback){
 		
 		// Loop through all tabs that are associated with the given room code
 		for (var tabId in _rooms[roomCode]) {
-			chrome.browserAction.setBadgeText(
+			chrome.action.setBadgeText(
 				{
 					text: peers > 0 ? peers.toString() : '',
 					tabId: parseInt(tabId)
