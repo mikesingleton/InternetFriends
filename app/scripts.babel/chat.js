@@ -1,3 +1,110 @@
+//import { v4 as uuidv4 } from 'uuid';
+var swarm = require('webrtc-swarm')
+var signalhub = require('signalhub')
+
+var IFSwarm = function(roomCode, portManager, messageCallback) {
+    // variables ----------------------------------------------------------------
+    var _this = {},
+        _local = true,
+        _roomCode = roomCode,
+        _portManager = portManager,
+        _swarm = null,
+        _messageCallback = messageCallback,
+        _userInfoMessage = {
+            event: 'userInfo',
+            data: {}
+        };
+
+    
+    // initialize ---------------------------------------------------------------
+    function init() {
+        Logger.log(`new Swarm Initialized "${_roomCode}"`);
+    };
+    
+    // public functions --------------------------------------------------------
+    _this.connect = function() {
+        if (_swarm)
+            return;
+
+        Logger.log('connecting to swarm ', _roomCode);
+
+        var hub = signalhub(_roomCode, _local ? ['localhost:8080'] : ['https://if-signalhub.herokuapp.com/'])
+        _swarm = swarm(hub, { wrtc: require('wrtc') })
+
+        _swarm.on('peer', function(peer, id) {
+            Logger.log('connected to a new peer:', id)
+            Logger.log('total peers:', _swarm.peers.length)
+
+            // setup data listener
+            peer.on('data', (payload) => {
+                const message = JSON.parse(payload.toString())
+                message.data.source = 'peer'
+                message.data.userId = id
+                Logger.log(message);
+
+                // fire callback with the given message
+                _messageCallback(message);
+            })
+
+            // update the badge based on the number of peers
+            _portManager.tell('updateBadgeText', { peers: _swarm ? _swarm.peers.length : 0 });
+
+            // send user info message to peers on connection
+            _userInfoMessage.data.userColor = IFSettings.userColor;
+            peer.send(JSON.stringify(_userInfoMessage));
+        })
+
+        _swarm.on('disconnect', function(peer, id) {
+            Logger.log('disconnected from a peer:', id)
+            
+            // fire callback with the given message
+            _messageCallback({
+                event: 'disconnected',
+                data: {
+                    source: 'peer',
+                    userId: id
+                }
+            });
+            
+            // update the badge based on the number of peers
+            _portManager.tell('updateBadgeText', { peers: _swarm ? _swarm.peers.length : 0 });
+        })
+
+        // Resend user info if the user color is changed
+        IFEvents.addEventListener('settings.change.userColor', function () {
+            _userInfoMessage.data.userColor = IFSettings.userColor;
+
+            // send to the swarm
+            _this.sendMessage(_userInfoMessage);
+        });
+    };
+
+    _this.disconnect = function () {
+        if (!_swarm)
+            return;
+
+        Logger.log('disconnecting from swarm ', _roomCode);
+
+        _swarm.close()
+        _swarm = null;
+        
+        Logger.log('disconnected');
+    };
+
+    _this.sendMessage = function (message) {
+        if (!_swarm)
+            return;
+
+        _swarm.peers.forEach((peer) => {
+            peer.send(JSON.stringify(message));
+        });
+    };
+
+    init();
+	
+	return _this;
+};
+
 var User = function(id, submitCallback) {
     // variables ----------------------------------------------------------------
     var _this = {},
@@ -26,6 +133,12 @@ var User = function(id, submitCallback) {
         if (_id == "localuser") {
             _inputElement = $('<span contenteditable="true" class="input"></span>').appendTo(_userElement);
             setupInputElement();
+            _this.setColor(IFSettings.userColor);
+
+            // Add listener for color changes
+            IFEvents.addEventListener('settings.change.userColor', function () {
+                _this.setColor(IFSettings.userColor);
+            });
         } else {
             var cursorURL = typeof chrome !== "undefined" && chrome.runtime ? chrome.runtime.getURL('../../images/aero_arrow.png') : './images/aero_arrow.png';
             _mouseElement = $('<div class="fakeMouse"></div>').appendTo(_userElement);
@@ -138,7 +251,9 @@ var Chat = (function() {
         _portManager = null,
         _users = {},
         _scrollPosition = {},
-        _mouseVisible = true;
+        _mouseVisible = true,
+        _pageVisible = false,
+        _swarm = null;
 
     // initialize ---------------------------------------------------------------
     _this.init = function() {
@@ -150,7 +265,30 @@ var Chat = (function() {
     // events -------------------------------------------------------------------
     function onMessage(message) {
         Logger.log('got chat message', message)
+
+        // forward certain messages that didn't come from the swarm (from a peer)
+        if (_swarm && (!message.data.source || message.data.source != 'peer')) {
+            switch (message.event) {
+                case 'userInfo':
+                case 'mousemove':
+                case 'userchat':
+                case 'disconnected':
+                    _swarm.sendMessage(message);
+                    break;
+            }
+        }
+
+        // process messages
         switch (message.event) {
+            case 'loaded':
+                message_onLoaded(message.data);
+                break;
+            case 'pageVisible':
+                message_onPageVisible();
+                break;
+            case 'pageHidden':
+                message_onPageHidden();
+                break;
             case 'userInfo':
                 message_onUserInfo(message.data);
                 break;
@@ -182,8 +320,18 @@ var Chat = (function() {
 
     // private functions ---------------------------------------------------------
     function submitInput(message) {
-        var data = { message: message };
-        _portManager.tell('userchat', data);
+        // process locally
+        message_onUserchat({ userId: 'localuser', message: message })
+
+        // send to swarm
+        if (_swarm) {
+            _swarm.sendMessage({
+                event: 'userchat',
+                data: {
+                    message: message
+                }
+            });
+        }
     };
 
     function getUser(userId) {
@@ -194,6 +342,30 @@ var Chat = (function() {
     };
 
     // messages -----------------------------------------------------------------
+    function message_onLoaded({ roomCode }) {
+        // init swarm
+        _swarm = new IFSwarm(roomCode, _portManager, onMessage);
+        if (_pageVisible) {
+            _swarm.connect();
+        }
+    }
+
+    function message_onPageVisible() {
+        _pageVisible = true;
+
+        if (_swarm) {
+            _swarm.connect();
+        }
+    }
+    
+    function message_onPageHidden() {
+        _pageVisible = false;
+
+        if (_swarm) {
+            _swarm.disconnect();
+        }
+    }
+
     function message_onUserInfo(data) {
         var user = getUser(data.userId);
         user.setColor(data.userColor);

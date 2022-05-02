@@ -113,10 +113,18 @@ var Inject = (function() {
 
     // messages -----------------------------------------------------------------
     function message_onLoaded() {
+        // Send init scroll info
         var data = { scrollX: window.scrollX, scrollY: window.scrollY };
 
-        if (_portManager)
+        if (_portManager) {
             _portManager.tell("scroll", data);
+            
+            if (isPageHidden()) {
+                _portManager.tell("pageHidden");
+            } else {
+                _portManager.tell("pageVisible");
+            }
+        }
     }
 
     // events -------------------------------------------------------------------

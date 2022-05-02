@@ -10,7 +10,7 @@
     "default_locale": "en",
     "incognito": "split",
     "background": {
-        "service_worker": "scripts/bundle.js"
+        "service_worker": "scripts/background.js"
     },
     "permissions": [
         "storage",
@@ -47,11 +47,10 @@
             "resources": [
                 "scripts/logger.js",
                 "scripts/settings.js",
-                "scripts/backgroundPortManager.js",
-                "scripts/bundle.js",
+                "scripts/background.js",
                 "scripts/popup.js",
                 "html/iframe/chat.html",
-                "scripts/chat.js",
+                "scripts/bundle.js",
                 "styles/core.css",
                 "styles/chat.css",
                 "styles/slider.css",

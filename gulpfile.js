@@ -34,7 +34,7 @@ function jsBabel() {
 
 function jsBrowserify() {
   return browserify({
-    entries: 'app/scripts/background.js',
+    entries: 'app/scripts/chat.js',
     debug: false
   })
   .bundle()
