@@ -4,6 +4,7 @@ var portManager = function (source, messageCallback, disconnectCallback){
 		_source				= "",
 		_port				= null,
 		_messageListener	= null,
+		_connectListener 	= null,
 		_disconnectListener	= null;
 	
 	// initialize ---------------------------------------------------------------
@@ -12,26 +13,9 @@ var portManager = function (source, messageCallback, disconnectCallback){
 		_messageListener = messageCallback;
 		_disconnectListener = disconnectCallback;
 
-		// receive messages from "background.js"
-		_port = chrome.runtime.connect({name: "InternetFriends-" + source});
-		_port.onMessage.addListener(port_onMessage);	
-		_port.onDisconnect.addListener(port_onDisconnect);
-
 		Logger.log(`PortManager Initialized in "${source}"`);
 	};
 	
-	// private functions --------------------------------------------------------
-
-	// events -------------------------------------------------------------------
-	function port_onMessage (message){
-		// call the listener callback
-		if (_messageListener) _messageListener(message);
-	};
-
-	function port_onDisconnect (){
-		if (_disconnectListener) _disconnectListener();
-	};
-
 	// public functions ---------------------------------------------------------	
 	_this.tell = function (event, data){
 		var data = data || {};
@@ -43,6 +27,25 @@ var portManager = function (source, messageCallback, disconnectCallback){
 			});
 		}
 	};
+	
+	_this.connect = function () {
+		Logger.log("Connecting to Background Script...");
+
+		_port = chrome.runtime.connect({name: "InternetFriends-" + source});
+
+		if (_messageListener) _port.onMessage.addListener(_messageListener);	
+		if (_disconnectListener) _port.onDisconnect.addListener(_disconnectListener);
+	}
+
+	_this.disconnect = function () {
+		if (!_port)
+			return;
+			
+		Logger.log("Disconnecting from Background Script...");
+
+		_port.disconnect();
+		_port = null;
+	}
 
 	// messages -----------------------------------------------------------------	
 	_this.init(source, messageCallback, disconnectCallback);

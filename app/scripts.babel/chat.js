@@ -2,12 +2,11 @@
 var swarm = require('webrtc-swarm')
 var signalhub = require('signalhub')
 
-var IFSwarm = function(roomCode, portManager, messageCallback) {
+var IFSwarm = function(roomCode, messageCallback) {
     // variables ----------------------------------------------------------------
     var _this = {},
         _local = true,
-        _roomCode = roomCode,
-        _portManager = portManager,
+        _roomCode = null,
         _swarm = null,
         _messageCallback = messageCallback,
         _userInfoMessage = {
@@ -18,9 +17,9 @@ var IFSwarm = function(roomCode, portManager, messageCallback) {
     
     // initialize ---------------------------------------------------------------
     function init() {
-        Logger.log(`new Swarm Initialized "${_roomCode}"`);
+        _roomCode = roomCode;
     };
-    
+
     // public functions --------------------------------------------------------
     _this.connect = function() {
         if (_swarm)
@@ -47,7 +46,7 @@ var IFSwarm = function(roomCode, portManager, messageCallback) {
             })
 
             // update the badge based on the number of peers
-            _portManager.tell('updateBadgeText', { peers: _swarm ? _swarm.peers.length : 0 });
+            chrome.runtime.sendMessage({ event: 'updateBadgeText', data: { peers: _swarm ? _swarm.peers.length : 0 }});
 
             // send user info message to peers on connection
             _userInfoMessage.data.userColor = IFSettings.userColor;
@@ -67,7 +66,7 @@ var IFSwarm = function(roomCode, portManager, messageCallback) {
             });
             
             // update the badge based on the number of peers
-            _portManager.tell('updateBadgeText', { peers: _swarm ? _swarm.peers.length : 0 });
+            chrome.runtime.sendMessage({ event: 'updateBadgeText', data: { peers: _swarm ? _swarm.peers.length : 0 }});
         })
 
         // Resend user info if the user color is changed
@@ -248,18 +247,20 @@ var User = function(id, submitCallback) {
 var Chat = (function() {
     // variables ----------------------------------------------------------------
     var _this = {},
-        _portManager = null,
+        _roomCode = null,
         _users = {},
-        _scrollPosition = {},
+        _scrollPosition = { x: 0, y: 0 },
         _mouseVisible = true,
-        _pageVisible = false,
         _swarm = null;
 
     // initialize ---------------------------------------------------------------
     _this.init = function() {
         Logger.log('Chat View Initialized')
-        _portManager = new portManager("chat", onMessage);
-        _scrollPosition = { x: 0, y: 0 };
+
+        window.addEventListener("message", (event) => {
+            event.data.data.userId = 'localuser';
+            onMessage(event.data);
+        });
     };
 
     // events -------------------------------------------------------------------
@@ -280,8 +281,8 @@ var Chat = (function() {
 
         // process messages
         switch (message.event) {
-            case 'loaded':
-                message_onLoaded(message.data);
+            case 'init':
+                message_onInit(message.data);
                 break;
             case 'pageVisible':
                 message_onPageVisible();
@@ -342,28 +343,17 @@ var Chat = (function() {
     };
 
     // messages -----------------------------------------------------------------
-    function message_onLoaded({ roomCode }) {
-        // init swarm
-        _swarm = new IFSwarm(roomCode, _portManager, onMessage);
-        if (_pageVisible) {
-            _swarm.connect();
-        }
+    function message_onInit(data) {
+        _roomCode = data.roomCode;
+        _swarm = new IFSwarm(_roomCode, onMessage);
     }
 
     function message_onPageVisible() {
-        _pageVisible = true;
-
-        if (_swarm) {
-            _swarm.connect();
-        }
+        _swarm.connect();
     }
-    
-    function message_onPageHidden() {
-        _pageVisible = false;
 
-        if (_swarm) {
-            _swarm.disconnect();
-        }
+    function message_onPageHidden() {
+        _swarm.disconnect();
     }
 
     function message_onUserInfo(data) {
