@@ -24,44 +24,63 @@ var Inject = (function() {
             return;
         }
 
+        // add message listener
+        window.addEventListener("message", (event) => {
+            switch (event.data) {
+                case 'iFrameLoaded':
+                    onIFrameLoaded();
+                    break;
+                case 'roomCodeLoaded':
+                    onRoomCodeLoaded();
+                    break;
+            }
+        });
+
         // create the main container
         _container = $('<div />', { id: ID.CONTAINER });
         _container.appendTo(document.body);
         
         // add the "chat" iframe
         _iframe = document.createElement('iframe');
-        _iframe.onload = function () {
-            sendMessage('init', { roomCode: getRoomCode() });
-
-            // send visible if visible
-            if (!isPageHidden())
-                sendMessage('pageVisible');
-
-            // add event listeners
-            document.addEventListener("scroll", dom_onScroll, false);
-            document.addEventListener("mouseover", dom_onMousemove, false);
-            document.addEventListener("mousemove", dom_onMousemove, false);
-            document.addEventListener("mouseenter", dom_onMouseenter, false);
-            document.addEventListener("mouseleave", dom_onMouseleave, false);
-
-            // if chat is not enabled, return
-            if (!IFSettings.enableChat) {
-                Logger.log('Chat disabled. Disabling Key Combo Listeners.');
-                return;
-            }
-
-            // only detect key presses if chat is enabled
-            document.addEventListener("keydown", dom_onKeydown, false);
-            document.addEventListener("keyup", dom_onKeyup, false);
-            document.addEventListener("webkitvisibilitychange", dom_onVisibilityChange, false);
-            document.addEventListener("msvisibilitychange", dom_onVisibilityChange, false);
-        };
-
         _iframe.src = typeof chrome !== "undefined" && chrome.runtime ? chrome.runtime.getURL('html/iframe/chat.html?view=chat&_' + new Date().getTime()) : './html/iframe/chat.html';
         _container.append(_iframe);
     };
 
     // private functions --------------------------------------------------------
+    function onIFrameLoaded() {
+        Logger.log('iFrame loaded, sendMessage/postMessage is now available');
+
+        sendMessage('init', { roomCode: getRoomCode() });
+    }
+
+    function onRoomCodeLoaded() {
+        Logger.log('room code loaded, events for swarm now available');
+        
+        // add event listeners
+        document.addEventListener("scroll", dom_onScroll, false);
+        document.addEventListener("mouseover", dom_onMousemove, false);
+        document.addEventListener("mousemove", dom_onMousemove, false);
+        document.addEventListener("mouseenter", dom_onMouseenter, false);
+        document.addEventListener("mouseleave", dom_onMouseleave, false);
+
+        // if chat is not enabled, return
+        if (!IFSettings.enableChat) {
+            Logger.log('Chat disabled. Disabling Key Combo Listeners.');
+            return;
+        }
+
+        // only detect key presses if chat is enabled
+        document.addEventListener("keydown", dom_onKeydown, false);
+        document.addEventListener("keyup", dom_onKeyup, false);
+        document.addEventListener("webkitvisibilitychange", dom_onVisibilityChange, false);
+        document.addEventListener("msvisibilitychange", dom_onVisibilityChange, false);
+
+        // send visible if visible
+        if (!isPageHidden()) {
+            sendMessage('pageVisible');
+        }
+    }
+
     function getRoomCode() {
 		// Room code is based on url and title
 		// e.g. 'www.google.com/search : test - Google Search'

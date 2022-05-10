@@ -1,12 +1,13 @@
-//import { v4 as uuidv4 } from 'uuid';
 var swarm = require('webrtc-swarm')
 var signalhub = require('signalhub')
+const { createHash } = require('crypto');
 
 var IFSwarm = function(roomCode, messageCallback) {
     // variables ----------------------------------------------------------------
     var _this = {},
-        _local = true,
+        _local = false,
         _roomCode = null,
+        _encodedRoomCode = null,
         _swarm = null,
         _messageCallback = messageCallback,
         _userInfoMessage = {
@@ -18,6 +19,9 @@ var IFSwarm = function(roomCode, messageCallback) {
     // initialize ---------------------------------------------------------------
     function init() {
         _roomCode = roomCode;
+        _encodedRoomCode = createHash('sha256').update(roomCode).digest('hex');
+        
+        window.parent.postMessage('roomCodeLoaded', '*');
     };
 
     // public functions --------------------------------------------------------
@@ -27,7 +31,7 @@ var IFSwarm = function(roomCode, messageCallback) {
 
         Logger.log('connecting to swarm ', _roomCode);
 
-        var hub = signalhub(_roomCode, _local ? ['localhost:8080'] : ['https://if-signalhub.herokuapp.com/'])
+        var hub = signalhub(_encodedRoomCode, _local ? ['localhost:8080'] : ['https://if-signalhub.herokuapp.com/'])
         _swarm = swarm(hub, { wrtc: require('wrtc') })
 
         _swarm.on('peer', function(peer, id) {
@@ -261,6 +265,8 @@ var Chat = (function() {
             event.data.data.userId = 'localuser';
             onMessage(event.data);
         });
+
+        window.parent.postMessage('iFrameLoaded', '*');
     };
 
     // events -------------------------------------------------------------------

@@ -22,8 +22,8 @@ var IFEvents = new EventTarget();
     };
 
     // define function for getting a random color
-    function getRandomIroColor () {
-        return 'hsla(' + Math.round(Math.random() * 360) + ', 70%, 66%, 1)';
+    function getRandomColor () {
+        return 'hsla(' + Math.round(Math.random() * 360) + ', 78%, 54%, 1)';
     }
 
     // if chrome is available
@@ -37,7 +37,7 @@ var IFEvents = new EventTarget();
                 combo: storedSettings?.combo || _defaultCombo,
                 disabledSites: storedSettings?.disabledSites || {},
                 enableChat: storedSettings?.enableChat === true || storedSettings?.enableChat === undefined,
-                userColor: storedSettings?.userColor || getRandomIroColor()
+                userColor: storedSettings?.userColor || getRandomColor()
             }
 
             // set new settings
@@ -69,7 +69,7 @@ var IFEvents = new EventTarget();
             combo: _defaultCombo,
             disabledSites: {},
             enableChat: true,
-            userColor: getRandomIroColor()
+            userColor: getRandomColor()
         }
         
         IFEvents.dispatchEvent(initEvent);
@@ -91,6 +91,7 @@ var Background = (function() {
                     if (request.event === 'updateBadgeText') {
                         updateBadgeTextByTabId(sender.tab.id, request.data.peers);
                     }
+                    return true;
                 }
             );
         }
