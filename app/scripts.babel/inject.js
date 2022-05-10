@@ -2,15 +2,14 @@ var Inject = (function() {
     // constants ----------------------------------------------------------------
     var ID = {
         CONTAINER: 'internetFriends-container',
-        IFRAME_PREFIX: 'internetFriends-iframe-'
+        IFRAME: 'internetFriends-iframe'
     };
 
     // variables ----------------------------------------------------------------
     var _this = {},
-        _views = {},
         _container = null,
         _iframe = null,
-        //_portManager = null,
+        _roomCode = null,
         _comboDown = false;
 
     // initialize ---------------------------------------------------------------
@@ -27,34 +26,40 @@ var Inject = (function() {
         // add message listener
         window.addEventListener("message", (event) => {
             switch (event.data) {
-                case 'iFrameLoaded':
-                    onIFrameLoaded();
-                    break;
-                case 'roomCodeLoaded':
-                    onRoomCodeLoaded();
+                case 'iframeInitialized':
+                    onIframeInitialized();
                     break;
             }
         });
 
         // create the main container
-        _container = $('<div />', { id: ID.CONTAINER });
-        _container.appendTo(document.body);
+        _container = document.createElement('div');
+        _container.id = ID.CONTAINER;
+        document.body.append(_container);
         
         // add the "chat" iframe
         _iframe = document.createElement('iframe');
+        _iframe.id = ID.IFRAME;
         _iframe.src = typeof chrome !== "undefined" && chrome.runtime ? chrome.runtime.getURL('html/iframe/chat.html?view=chat&_' + new Date().getTime()) : './html/iframe/chat.html';
         _container.append(_iframe);
     };
 
     // private functions --------------------------------------------------------
-    function onIFrameLoaded() {
-        Logger.log('iFrame loaded, sendMessage/postMessage is now available');
+    function onIframeInitialized() {
+        Logger.log('iFrame initialized, sendMessage and swarm events are now available');
 
-        sendMessage('init', { roomCode: getRoomCode() });
-    }
+        // update the room code
+        _roomCode = getRoomCode();
+        onRoomCodeChanged();
 
-    function onRoomCodeLoaded() {
-        Logger.log('room code loaded, events for swarm now available');
+        // add listener to detect room code changes that occur without page refresh
+        new MutationObserver(() => {
+            let roomCode = getRoomCode();
+            if (_roomCode !== roomCode) {
+                _roomCode = roomCode;
+                onRoomCodeChanged();
+            }
+        }).observe(document, {subtree: true, childList: true});
         
         // add event listeners
         document.addEventListener("scroll", dom_onScroll, false);
@@ -72,13 +77,10 @@ var Inject = (function() {
         // only detect key presses if chat is enabled
         document.addEventListener("keydown", dom_onKeydown, false);
         document.addEventListener("keyup", dom_onKeyup, false);
-        document.addEventListener("webkitvisibilitychange", dom_onVisibilityChange, false);
-        document.addEventListener("msvisibilitychange", dom_onVisibilityChange, false);
+    }
 
-        // send visible if visible
-        if (!isPageHidden()) {
-            sendMessage('pageVisible');
-        }
+    function onRoomCodeChanged() {
+        sendMessage('roomCodeChanged', { roomCode: _roomCode });
     }
 
     function getRoomCode() {
@@ -90,13 +92,7 @@ var Inject = (function() {
     }
 
     function sendMessage(event, data) {
-        // chrome-extension://namkigeilfgjhccknbahjkdolfbapckn ?
-        // Failed to execute 'postMessage' on 'DOMWindow': The target origin provided ('chrome-extension://namkigeilfgjhccknbahjkdolfbapckn') does not match the recipient window's origin ('https://www.youtube.com').
         _iframe.contentWindow.postMessage({ event, data: data || {} }, 'chrome-extension://namkigeilfgjhccknbahjkdolfbapckn');
-    }
-
-    function isPageHidden() {
-        return document.hidden || document.msHidden || document.webkitHidden;
     }
 
     // events -------------------------------------------------------------------
@@ -143,14 +139,6 @@ var Inject = (function() {
             event.preventDefault();
         }
     };
-
-    function dom_onVisibilityChange(event) {
-        if (!isPageHidden()) {
-            sendMessage("pageVisible");
-        } else {
-            sendMessage("pageHidden");
-        }
-    }
 
     return _this;
 }());

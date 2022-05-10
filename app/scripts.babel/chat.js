@@ -2,12 +2,10 @@ var swarm = require('webrtc-swarm')
 var signalhub = require('signalhub')
 const { createHash } = require('crypto');
 
-var IFSwarm = function(roomCode, messageCallback) {
+var IFSwarm = function(messageCallback) {
     // variables ----------------------------------------------------------------
     var _this = {},
         _local = false,
-        _roomCode = null,
-        _encodedRoomCode = null,
         _swarm = null,
         _messageCallback = messageCallback,
         _userInfoMessage = {
@@ -18,20 +16,19 @@ var IFSwarm = function(roomCode, messageCallback) {
     
     // initialize ---------------------------------------------------------------
     function init() {
-        _roomCode = roomCode;
-        _encodedRoomCode = createHash('sha256').update(roomCode).digest('hex');
-        
-        window.parent.postMessage('roomCodeLoaded', '*');
     };
 
     // public functions --------------------------------------------------------
-    _this.connect = function() {
+    _this.connect = function(roomCode) {
         if (_swarm)
             return;
 
-        Logger.log('connecting to swarm ', _roomCode);
+        let encodedRoomCode = createHash('sha256').update(roomCode).digest('hex');
 
-        var hub = signalhub(_encodedRoomCode, _local ? ['localhost:8080'] : ['https://if-signalhub.herokuapp.com/'])
+        Logger.log('connecting to swarm ', roomCode);
+        Logger.log('encoded room code: ', encodedRoomCode);
+
+        var hub = signalhub(encodedRoomCode, _local ? ['localhost:8080'] : ['https://if-signalhub.herokuapp.com/'])
         _swarm = swarm(hub, { wrtc: require('wrtc') })
 
         _swarm.on('peer', function(peer, id) {
@@ -86,7 +83,7 @@ var IFSwarm = function(roomCode, messageCallback) {
         if (!_swarm)
             return;
 
-        Logger.log('disconnecting from swarm ', _roomCode);
+        Logger.log('disconnecting from swarm');
 
         _swarm.close()
         _swarm = null;
@@ -178,8 +175,10 @@ var User = function(id, submitCallback) {
     };
 
     function repositionElements() {
-        _userElement.css('top', _mousePosition.y + 'px');
-        _userElement.css('left', _mousePosition.x + 'px');
+        _userElement.css({
+            'top': _mousePosition.y + 'px',
+            'left': _mousePosition.x + 'px'
+        });
 
         if (!_flipped && _mousePosition.x > document.documentElement.clientWidth / 2) {
             _flipped = true;
@@ -252,6 +251,7 @@ var Chat = (function() {
     // variables ----------------------------------------------------------------
     var _this = {},
         _roomCode = null,
+        _connectionTimeout = null,
         _users = {},
         _scrollPosition = { x: 0, y: 0 },
         _mouseVisible = true,
@@ -260,13 +260,18 @@ var Chat = (function() {
     // initialize ---------------------------------------------------------------
     _this.init = function() {
         Logger.log('Chat View Initialized')
+        Logger.log('Chat Init Visibility State: ', document.visibilityState);
+
+        _swarm = new IFSwarm(onMessage);
 
         window.addEventListener("message", (event) => {
             event.data.data.userId = 'localuser';
             onMessage(event.data);
         });
 
-        window.parent.postMessage('iFrameLoaded', '*');
+        document.addEventListener("visibilitychange", onVisibilityStateChanged, false);
+
+        window.parent.postMessage('iframeInitialized', '*');
     };
 
     // events -------------------------------------------------------------------
@@ -287,14 +292,8 @@ var Chat = (function() {
 
         // process messages
         switch (message.event) {
-            case 'init':
-                message_onInit(message.data);
-                break;
-            case 'pageVisible':
-                message_onPageVisible();
-                break;
-            case 'pageHidden':
-                message_onPageHidden();
+            case 'roomCodeChanged':
+                message_onRoomCodeChanged(message.data);
                 break;
             case 'userInfo':
                 message_onUserInfo(message.data);
@@ -347,19 +346,38 @@ var Chat = (function() {
 
         return _users[userId];
     };
+    
+    function onVisibilityStateChanged() {
+        Logger.log('Visiblility Changed: ', document.visibilityState);
+        tryConnect();
+    }
+
+    function tryConnect() {
+        // wait one second before connecting in case multiple changes are made in rapid succession
+        clearTimeout(_connectionTimeout);
+        _connectionTimeout = setTimeout(function () {
+            if (document.visibilityState === 'visible') {
+                _swarm.connect(_roomCode);
+            } else {
+                _swarm.disconnect();
+            }
+        }, 1000);
+    }
 
     // messages -----------------------------------------------------------------
-    function message_onInit(data) {
-        _roomCode = data.roomCode;
-        _swarm = new IFSwarm(_roomCode, onMessage);
-    }
+    function message_onRoomCodeChanged(data) {
+        // if the room code is the same, return
+        if (data.roomCode === _roomCode)
+            return;
 
-    function message_onPageVisible() {
-        _swarm.connect();
-    }
-
-    function message_onPageHidden() {
+        // disconnect from the current room
         _swarm.disconnect();
+        
+        // set the new room code
+        _roomCode = data.roomCode;
+        
+        // reconnect to the swarm
+        tryConnect();
     }
 
     function message_onUserInfo(data) {

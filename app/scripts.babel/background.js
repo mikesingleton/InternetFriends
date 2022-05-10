@@ -1,3 +1,26 @@
+// ---------------------------------------- Badge Text Listener ----------------------------------------
+chrome.runtime.onMessage.addListener(
+    function(request, sender) {
+        if (request.event === 'updateBadgeText')
+        {
+            let peers = request.data.peers;
+
+            chrome.action.setBadgeText(
+                {
+                    text: peers > 0 ? peers.toString() : '',
+                    tabId: sender.tab.id
+                }
+            );
+        }
+        else if (request.event === 'updateBadgeColor')
+        {
+            chrome.action.setBadgeBackgroundColor({ color: request.data.userColor });
+        }
+
+        return true;
+    }
+);
+
 // ---------------------------------------- Logger ----------------------------------------
 var debug = true;
 var Logger = {
@@ -5,14 +28,8 @@ var Logger = {
 };
 
 // ---------------------------------------- Settings ----------------------------------------
-var IFSettings;
-var IFEvents = new EventTarget();
-
 // wrap in a self-invoking function to use define private variables & functions
 (function () {
-    // define 'init' event
-    var initEvent = new Event('settings.init');
-
     // define default combo
     var _defaultCombo = {
         ctrlKey: true,
@@ -28,107 +45,22 @@ var IFEvents = new EventTarget();
 
     // if chrome is available
     if (chrome && chrome.storage) {
-        // retrieve settings
+        // retrieve settings from storage
         chrome.storage.sync.get(null, function(result) {
             var storedSettings = result;
 
-            // set IFSettings based on storedSettings, get default values if necessary
-            IFSettings = {
+            // set settings based on storedSettings, get default values if necessary
+            var settings = {
                 combo: storedSettings?.combo || _defaultCombo,
                 disabledSites: storedSettings?.disabledSites || {},
                 enableChat: storedSettings?.enableChat === true || storedSettings?.enableChat === undefined,
                 userColor: storedSettings?.userColor || getRandomColor()
             }
 
-            // set new settings
-            chrome.storage.sync.set(IFSettings);
+            // store new settings
+            chrome.storage.sync.set(settings);
 
-            Logger.log('Settings initialized:')
-            Logger.log(IFSettings);
-            IFEvents.dispatchEvent(initEvent);
-        });
-
-        // listen for changes to settings
-        chrome.storage.onChanged.addListener(function (changes, namespace) {
-            for (let [key, { newValue }] of Object.entries(changes)) {
-                Logger.log(`Storage key "${key}" in namespace "${namespace}" changed.`);
-
-                // update settings
-                IFSettings[key] = newValue;
-                IFEvents.dispatchEvent(new Event('settings.change.' + key));
-
-                Logger.log(IFSettings);
-            }
+            Logger.log('Settings initialized:', settings);
         });
     }
-    // otherwise this is loaded outside an extension
-    else
-    {
-        // set IFSettings with default values
-        IFSettings = {
-            combo: _defaultCombo,
-            disabledSites: {},
-            enableChat: true,
-            userColor: getRandomColor()
-        }
-        
-        IFEvents.dispatchEvent(initEvent);
-    }
 }());
-
-// ---------------------------------------- Background Script ----------------------------------------
-
-var Background = (function() {
-    // variables ----------------------------------------------------------------
-    var _this = {};
-
-    // initialize ---------------------------------------------------------------
-    _this.init = function() {
-        // receive post messages from 'inject.js' and any iframes        
-        if (chrome && chrome.runtime) {
-            chrome.runtime.onMessage.addListener(
-                function(request, sender) {
-                    if (request.event === 'updateBadgeText') {
-                        updateBadgeTextByTabId(sender.tab.id, request.data.peers);
-                    }
-                    return true;
-                }
-            );
-        }
-
-        if (chrome && chrome.action) {
-            chrome.action.setBadgeBackgroundColor({ color: IFSettings.userColor });
-        
-            // add listener for storage changes
-            IFEvents.addEventListener('settings.change.userColor', function () {
-                chrome.action.setBadgeBackgroundColor({color: IFSettings.userColor });
-            });
-        }
-    
-        Logger.log('Internet Friends Background Script Initialized');
-    };
-
-    // private functions --------------------------------------------------------
-	function updateBadgeTextByTabId (tabId, peers) {
-		chrome.action.setBadgeText(
-            {
-                text: peers > 0 ? peers.toString() : '',
-                tabId: tabId
-            }
-        );
-	};
-
-    // events -------------------------------------------------------------------
-
-    return _this;
-}());
-
-// If IFSettings have not been initialized, wait for init event to be dispatched
-if (!IFSettings) {
-    IFEvents.addEventListener('settings.init', function () {
-        Background.init();
-    });
-} else {
-    // else, init now
-    Background.init();
-}

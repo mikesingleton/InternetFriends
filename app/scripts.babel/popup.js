@@ -107,6 +107,7 @@ var Popup = (function() {
     // private functions --------------------------------------------------------
     function updateUserColor () {
         chrome.storage.sync.set({'userColor': _userColor});
+        chrome.runtime.sendMessage({ event: 'updateBadgeColor', data: { userColor: _userColor }});
     }
 
     function setComplementaryColors (iroColor) {
