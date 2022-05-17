@@ -1,6 +1,6 @@
 // ---------------------------------------- Badge Text Listener ----------------------------------------
 chrome.runtime.onMessage.addListener(
-    function(request, sender) {
+    function(request, sender, sendResponse) {
         if (request.event === 'updateBadgeText')
         {
             let peers = request.data.peers;
@@ -17,7 +17,8 @@ chrome.runtime.onMessage.addListener(
             chrome.action.setBadgeBackgroundColor({ color: request.data.userColor });
         }
 
-        return true;
+        // dummy response due to bug: https://stackoverflow.com/questions/71520198/manifestv3-new-promise-error-the-message-port-closed-before-a-response-was-rece/71520415#71520415
+        sendResponse();
     }
 );
 

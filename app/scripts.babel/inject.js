@@ -92,7 +92,7 @@ var Inject = (function() {
     }
 
     function sendMessage(event, data) {
-        _iframe.contentWindow.postMessage({ event, data: data || {} }, 'chrome-extension://namkigeilfgjhccknbahjkdolfbapckn');
+        _iframe.contentWindow.postMessage({ event, data: data || {} }, 'chrome-extension://' + chrome.runtime.id);
     }
 
     // events -------------------------------------------------------------------

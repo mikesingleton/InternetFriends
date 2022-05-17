@@ -4,7 +4,6 @@ var portManager = function (source, messageCallback, disconnectCallback){
 		_source				= "",
 		_port				= null,
 		_messageListener	= null,
-		_connectListener 	= null,
 		_disconnectListener	= null;
 	
 	// initialize ---------------------------------------------------------------
