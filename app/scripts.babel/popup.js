@@ -64,7 +64,7 @@ var Popup = (function() {
         });
         
         var _mouseBGElm = document.getElementById('fakeMouse');
-        var cursorURL = typeof chrome !== "undefined" && chrome.extension ? chrome.extension.getURL('../../images/aero_arrow.png') : '../images/aero_arrow.png';
+        var cursorURL = typeof chrome !== "undefined" && chrome.runtime ? chrome.runtime.getURL('../../images/aero_arrow.png') : '../images/aero_arrow.png';
         _mouseBGElm.style.backgroundImage = "url(" + cursorURL + ")";
         let initColor = { h: 207, s: 86, v: 95 };
         let hsl = colorWheel.color.hsl;
@@ -107,6 +107,7 @@ var Popup = (function() {
     // private functions --------------------------------------------------------
     function updateUserColor () {
         chrome.storage.sync.set({'userColor': _userColor});
+        chrome.runtime.sendMessage({ event: 'updateBadgeColor', data: { userColor: _userColor }});
     }
 
     function setComplementaryColors (iroColor) {

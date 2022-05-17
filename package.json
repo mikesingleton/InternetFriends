@@ -57,6 +57,7 @@
     "gulp-useref": "^5.0.0",
     "gulp-zip": "^5.1.0",
     "signalhub": "^4.9.0",
+    "uuid": "^8.3.2",
     "vinyl-source-stream": "^2.0.0",
     "webrtc-swarm": "github:tom-james-watson/webrtc-swarm",
     "wiredep": "^4.0.0",

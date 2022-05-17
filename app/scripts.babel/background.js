@@ -1,166 +1,67 @@
-'use strict';
+// ---------------------------------------- Badge Text Listener ----------------------------------------
+chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+        if (request.event === 'updateBadgeText')
+        {
+            let peers = request.data.peers;
 
-var swarm = require('webrtc-swarm')
-var signalhub = require('signalhub')
-
-var Background = (function() {
-    // variables ----------------------------------------------------------------
-    var _this = {},
-        _local = false,
-        _portManager = null,
-        _swarms = {};
-
-    // initialize ---------------------------------------------------------------
-    _this.init = function() {
-        // receive post messages from 'inject.js' and any iframes
-        _portManager = new backgroundPortManager(processMessageFromBrowser, processRoomDisconnect);
-
-        if (chrome && chrome.browserAction) {
-            chrome.browserAction.setBadgeBackgroundColor({ color: IFSettings.userColor });
-        
-            // add listener for storage changes
-            IFEvents.addEventListener('settings.change.userColor', function () {
-                chrome.browserAction.setBadgeBackgroundColor({color: IFSettings.userColor });
-            });
+            chrome.action.setBadgeText(
+                {
+                    text: peers > 0 ? peers.toString() : '',
+                    tabId: sender.tab.id
+                }
+            );
         }
-    
-        Logger.log('Internet Friends Background Script Initialized');
+        else if (request.event === 'updateBadgeColor')
+        {
+            chrome.action.setBadgeBackgroundColor({ color: request.data.userColor });
+        }
+
+        // dummy response due to bug: https://stackoverflow.com/questions/71520198/manifestv3-new-promise-error-the-message-port-closed-before-a-response-was-rece/71520415#71520415
+        sendResponse();
+    }
+);
+
+// ---------------------------------------- Logger ----------------------------------------
+var debug = false;
+var Logger = {
+    log: debug ? console.log.bind(console) : function(){}
+};
+
+// ---------------------------------------- Settings ----------------------------------------
+// wrap in a self-invoking function to use define private variables & functions
+(function () {
+    // define default combo
+    var _defaultCombo = {
+        ctrlKey: true,
+        shiftKey: true,
+        altKey: false,
+        key: "Enter"
     };
 
-    // private functions --------------------------------------------------------
-    function connectToSwarm(roomCode, callback) {
-        if (_swarms[roomCode])
-            return;
+    // define function for getting a random color
+    function getRandomColor () {
+        return 'hsla(' + Math.round(Math.random() * 360) + ', 78%, 54%, 1)';
+    }
 
-        Logger.log('connecting to swarm ', roomCode);
+    // if chrome is available
+    if (chrome && chrome.storage) {
+        // retrieve settings from storage
+        chrome.storage.sync.get(null, function(result) {
+            var storedSettings = result;
 
-        // init user info message
-        var userInfoMessage = {
-            event: 'userInfo',
-            data: {
-                userId: 'localuser',
-                userColor: IFSettings.userColor,
+            // set settings based on storedSettings, get default values if necessary
+            var settings = {
+                combo: storedSettings?.combo || _defaultCombo,
+                disabledSites: storedSettings?.disabledSites || {},
+                enableChat: storedSettings?.enableChat === true || storedSettings?.enableChat === undefined,
+                userColor: storedSettings?.userColor || getRandomColor()
             }
-        }
 
-        // send user info message to front end
-        _portManager.tellByRoomCode(roomCode, userInfoMessage);
+            // store new settings
+            chrome.storage.sync.set(settings);
 
-        var hub = signalhub(roomCode, _local ? ['localhost:8080'] : ['https://if-signalhub.herokuapp.com/'])
-        _swarms[roomCode] = swarm(hub)
-
-        _swarms[roomCode].on('peer', function(peer, id) {
-            Logger.log('connected to a new peer:', id)
-            Logger.log('total peers:', _swarms[roomCode].peers.length)
-
-            // setup data listener
-            peer.on('data', (payload) => {
-                const message = JSON.parse(payload.toString())
-                message.data.source = 'peer'
-                message.data.userId = id
-                Logger.log(message);
-
-                // Forward the message to the chat window
-                const foundRoom = _portManager.tellByRoomCode(roomCode, message);
-                if (!foundRoom) {
-                    disconnectFromSwarm(roomCode)
-                }
-            })
-
-            // update the badge based on the number of peers
-            _portManager.updateBadgeTextByRoomCode(roomCode, _swarms[roomCode].peers.length);
-
-            // send user info message to peers on connection
-            userInfoMessage.data.userColor = IFSettings.userColor;
-            peer.send(JSON.stringify(userInfoMessage));
-        })
-
-        _swarms[roomCode].on('disconnect', function(peer, id) {
-            Logger.log('disconnected from a peer:', id)
-            _portManager.tellByRoomCode(roomCode, {
-                event: 'disconnected',
-                data: {
-                    source: 'peer',
-                    userId: id
-                }
-            });
-            
-            // update the badge based on the number of peers
-            _portManager.updateBadgeTextByRoomCode(roomCode, _swarms[roomCode] ? _swarms[roomCode].peers.length : 0);
-        })
-
-        // Resend user info if the user color is changed
-        IFEvents.addEventListener('settings.change.userColor', function () {
-            userInfoMessage.data.userColor = IFSettings.userColor;
-
-            // send to the swarm
-            sendMessageToSwarm(userInfoMessage, roomCode);
-
-            // also send locally
-            _portManager.tellByRoomCode(roomCode, userInfoMessage);
+            Logger.log('Settings initialized:', settings);
         });
-
-        if (callback)
-            callback();
-    };
-
-    function disconnectFromSwarm(roomCode) {
-        if (_swarms[roomCode]) {
-            Logger.log('disconnecting from swarm ', roomCode);
-
-            _swarms[roomCode].close()
-            delete _swarms[roomCode]
-            
-            Logger.log('disconnected');
-        }
-    };
-
-    function sendMessageToSwarm(message, roomCode) {
-        // if message if intended for a new swarm
-        if (!_swarms[roomCode]) {
-            // connect to the new swarm
-            connectToSwarm(roomCode, function () {
-                // once connected, send the message to the swarm
-                if (_swarms[roomCode]) {
-                    _swarms[roomCode].peers.forEach((peer) => {
-                        peer.send(JSON.stringify(message));
-                    });
-                }
-            });
-        }
-        // already connected, send the message to the swarm
-        else if (_swarms[roomCode]) {
-            _swarms[roomCode].peers.forEach((peer) => {
-                peer.send(JSON.stringify(message));
-            });
-        }
-    };
-
-    // events -------------------------------------------------------------------
-    function processMessageFromBrowser(message, roomCode) {
-        if (message.event == 'pageHidden') {
-            disconnectFromSwarm(roomCode);
-        } else if (message.event == 'pageVisible') {
-            connectToSwarm(roomCode);
-        } else if (message.event != 'scroll') {
-            var wsMessage = JSON.parse(JSON.stringify(message));
-            sendMessageToSwarm(wsMessage, roomCode);
-        }
-    };
-
-    function processRoomDisconnect(roomCode) {
-        disconnectFromSwarm(roomCode);
-    };
-
-    return _this;
+    }
 }());
-
-// If IFSettings have not been initialized, wait for init event to be dispatched
-if (!IFSettings) {
-    IFEvents.addEventListener('settings.init', function () {
-        Background.init();
-    });
-} else {
-    // else, init now
-    Background.init();
-}

@@ -34,7 +34,7 @@ function jsBabel() {
 
 function jsBrowserify() {
   return browserify({
-    entries: 'app/scripts/background.js',
+    entries: 'app/scripts/chat.js',
     debug: false
   })
   .bundle()
@@ -64,7 +64,7 @@ function res(cb) {
   const manifest = require('./app/manifest.json');
   var log = require('fancy-log');
   var debug = require('gulp-debug');
-  return src(manifest.web_accessible_resources, { cwd: './app/', base: './app/', allowEmpty: true })
+  return src(manifest.web_accessible_resources[0].resources, { cwd: './app/', base: './app/', allowEmpty: true })
     .pipe(debug())
     .pipe($.if('*.css', $.cleanCss({compatibility: '*'})))
     .pipe(dest('dist'));
@@ -127,7 +127,7 @@ function websiteManifest(cb){
   const manifest = require('./app/manifest.json');
   return src([
       '!*.html',
-      ...manifest.web_accessible_resources,
+      ...manifest.web_accessible_resources[0].resources,
       ...manifest.content_scripts[0].css,
       ...manifest.content_scripts[0].js
     ], { cwd: './app/', base: './app/', allowEmpty: true })
