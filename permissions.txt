@@ -1,1 +1,0 @@
-This extension is designed to allow users to connect to each other while browsing online. It works by connecting users who are browsing on the same website at the same time. A chat room for each website a user is browsing. When browsing a website with other users, other users cursors and chat messages will be displayed on the associated tab.

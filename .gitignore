@@ -3,6 +3,7 @@ temp
 .tmp
 .firebase
 dist
+notes
 .sass-cache
 app/bower_components
 website
