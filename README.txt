@@ -1,3 +1,5 @@
+Source code for Internet Friends browser extension.
+
 Requires npm and gulp to build
 
 Versions used to build v1.0.0 of Internet Friends:
