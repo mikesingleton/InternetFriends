@@ -85,10 +85,17 @@ var Inject = (function() {
 
     function getRoomCode() {
 		// Room code is based on url and title
-		// e.g. 'www.google.com/search : test - Google Search'
+		// e.g. 'www.google.com/search?test-GoogleSearch'
 		// The goal is to group users based on the page they're currently on
 		// Ignoring url.search because many websites url.search values are unique to each user
-        return document.location.host + document.location.pathname + ':' + document.title;
+
+        // Title used to create unique rooms for sites like YouTube or Google
+        // Remove parenthsis with numbers for cases where title contains number of notifications e.g. '(1) YouTube'
+        // Remove spaces to normalize cases where padding is used in the title
+        // Remove * characters for cases where * is used in the title to indicate that a change has been made
+        var title = document.title.replace(/\(\d*\)|\*|\s/g, "");
+                
+        return document.location.host + document.location.pathname + '?' + title;
     }
 
     function sendMessage(event, data) {
