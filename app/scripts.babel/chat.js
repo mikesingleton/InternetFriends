@@ -47,7 +47,8 @@ var IFSwarm = function(messageCallback) {
             })
 
             // update the badge based on the number of peers
-            chrome.runtime.sendMessage({ event: 'updateBadgeText', data: { peers: _swarm ? _swarm.peers.length : 0 }});
+            if (typeof chrome !== "undefined" && chrome.runtime)
+                chrome.runtime.sendMessage({ event: 'updateBadgeText', data: { peers: _swarm ? _swarm.peers.length : 0 }});
 
             // send user info message to peers on connection
             _userInfoMessage.data.userColor = IFSettings.userColor;
@@ -67,7 +68,8 @@ var IFSwarm = function(messageCallback) {
             });
             
             // update the badge based on the number of peers
-            chrome.runtime.sendMessage({ event: 'updateBadgeText', data: { peers: _swarm ? _swarm.peers.length : 0 }});
+            if (typeof chrome !== "undefined" && chrome.runtime)
+                chrome.runtime.sendMessage({ event: 'updateBadgeText', data: { peers: _swarm ? _swarm.peers.length : 0 }});
         })
 
         // Resend user info if the user color is changed
@@ -140,7 +142,7 @@ var User = function(id, submitCallback) {
                 _this.setColor(IFSettings.userColor);
             });
         } else {
-            var cursorURL = typeof chrome !== "undefined" && chrome.runtime ? chrome.runtime.getURL('../../images/aero_arrow.png') : './images/aero_arrow.png';
+            var cursorURL = typeof chrome !== "undefined" && chrome.runtime ? chrome.runtime.getURL('../../images/aero_arrow.png') : '../../images/aero_arrow.png';
             _mouseElement = $('<div class="fakeMouse"></div>').appendTo(_userElement);
             _mouseBGElm = $('<div class="fakeMouseBackgroundColor"></div>').appendTo(_mouseElement);
             _mouseBGElm.css({ 'background-image': 'url(' + cursorURL + ')' });

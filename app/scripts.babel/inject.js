@@ -99,7 +99,8 @@ var Inject = (function() {
     }
 
     function sendMessage(event, data) {
-        _iframe.contentWindow.postMessage({ event, data: data || {} }, 'chrome-extension://' + chrome.runtime.id);
+        var origin = typeof chrome !== "undefined" && chrome.runtime ? 'chrome-extension://' + chrome.runtime.id : '*';
+        _iframe.contentWindow.postMessage({ event, data: data || {} }, origin);
     }
 
     // events -------------------------------------------------------------------

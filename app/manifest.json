@@ -36,7 +36,6 @@
             "libs/jquery-3.5.1.min.js",
             "scripts/logger.js",
             "scripts/settings.js",
-            "scripts/portManager.js",
             "scripts/inject.js"
         ],
         "run_at": "document_start"
