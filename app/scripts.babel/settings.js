@@ -24,7 +24,7 @@ var IFEvents = new EventTarget();
     }
 
     // if chrome is available
-    if (chrome && chrome.storage) {
+    if (typeof chrome !== "undefined" && chrome.storage) {
         // retrieve settings
         chrome.storage.sync.get(null, function(result) {
             var storedSettings = result;

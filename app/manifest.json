@@ -1,6 +1,6 @@
 {
     "name": "__MSG_appName__",
-    "version": "1.1.2",
+    "version": "1.1.3",
     "manifest_version": 3,
     "description": "__MSG_appDescription__",
     "icons": {
@@ -16,20 +16,21 @@
         "activeTab",
         "tabs"
     ],
+    "externally_connectable": {
+        "ids": ["*"],
+        "matches": [
+            "*://*.internetfriends.social/*",
+            "*://internetfriends.social/*",
+            "*://internetfriends-website.web.app/",
+            "*://internetfriends-website.firebaseapp.com/"
+        ],
+        "accepts_tls_channel_id": false
+    },
     "content_scripts": [{
         "matches": [
             "*://*/*"
         ],
-        "exclude_matches": [
-            "http://www.internetfriends.social/*",
-            "https://www.internetfriends.social/*",
-            "http://internetfriends.social/*",
-            "https://internetfriends.social/*",
-            "http://internetfriends-website.web.app/",
-            "https://internetfriends-website.web.app/",
-            "http://internetfriends-website.firebaseapp.com/",
-            "https://internetfriends-website.firebaseapp.com/"
-        ],
+        "exclude_matches": [],
         "css": ["styles/inject.css"],
         "js": [
             "libs/iro/iro.js",

@@ -47,7 +47,7 @@ var IFSwarm = function(messageCallback) {
             })
 
             // update the badge based on the number of peers
-            if (typeof chrome !== "undefined" && chrome.runtime)
+            if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.sendMessage && chrome.runtime.id)
                 chrome.runtime.sendMessage({ event: 'updateBadgeText', data: { peers: _swarm ? _swarm.peers.length : 0 }});
 
             // send user info message to peers on connection
@@ -68,7 +68,7 @@ var IFSwarm = function(messageCallback) {
             });
             
             // update the badge based on the number of peers
-            if (typeof chrome !== "undefined" && chrome.runtime)
+            if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.sendMessage && chrome.runtime.id)
                 chrome.runtime.sendMessage({ event: 'updateBadgeText', data: { peers: _swarm ? _swarm.peers.length : 0 }});
         })
 
@@ -142,7 +142,7 @@ var User = function(id, submitCallback) {
                 _this.setColor(IFSettings.userColor);
             });
         } else {
-            var cursorURL = typeof chrome !== "undefined" && chrome.runtime ? chrome.runtime.getURL('../../images/aero_arrow.png') : '../../images/aero_arrow.png';
+            var cursorURL = typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.getURL ? chrome.runtime.getURL('../../images/aero_arrow.png') : '../../images/aero_arrow.png';
             _mouseElement = $('<div class="fakeMouse"></div>').appendTo(_userElement);
             _mouseBGElm = $('<div class="fakeMouseBackgroundColor"></div>').appendTo(_mouseElement);
             _mouseBGElm.css({ 'background-image': 'url(' + cursorURL + ')' });
@@ -230,9 +230,9 @@ var User = function(id, submitCallback) {
         _textElement.html(message);
 
         var words = message.split(' ').length;
-        var wordsPerMinute = 200;
+        var wordsPerMinute = 190; // assumes reading at 190 words per minute
         var millisecondsPerWord = (1 / wordsPerMinute) * 60 * 1000;
-        var displayTime = millisecondsPerWord * words + 1000; // adds 1 second buffer
+        var displayTime = millisecondsPerWord * words + 2000; // adds 2 second buffer
 
         clearTimeout(_fadeoutTimer);
         _fadeoutTimer = setTimeout(function() { _speechElement.addClass("fadeout"); }, displayTime);

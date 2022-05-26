@@ -13,10 +13,50 @@ var Inject = (function() {
         _comboDown = false;
 
     // initialize ---------------------------------------------------------------
+    _this.tryInit = function() {
+        // special cases depending on where this script is running
+        // (within the website or within the chrome extension or both)
+        // the same script is embedded within the website and the chrome extension
+        // so that users who have not installed the chrome extension can interact with
+        // those who have as long as they're on the internetfriends website
+
+        if (typeof chrome === "undefined" || !chrome.runtime) {
+            // chrome runtime is unavailable, init
+            _this.init();
+            return;
+        }
+        
+        if (chrome.runtime.id) {
+            // this script is running within the chrome extension, init
+            _this.init();
+            return;
+        }
+        
+        if (!chrome.runtime.id)
+        {
+            // check to see if the extension is running
+            var chromeExtensionId = 'lhhkoincelmladajmdhodgbaacpbalbg';
+            chrome.runtime.sendMessage(chromeExtensionId, { message: "version" },
+                function (reply) {
+                    if (reply) {
+                        // this script is running outside of the extension, but the extension is already installed and running, do nothing
+                        return;
+                    }
+
+                    if (chrome.runtime.lastError) {
+                        // there was an error contacting the extension (likely not running), init
+                        _this.init();
+                        return;
+                    }
+                }
+            );
+        }
+    }
+
     _this.init = function() {
         Logger.log(`Internet Friends Initializing Room "${window.location.host + window.location.pathname} : ${document.title}"`);
 
-        // If websiteUrl is present in disabledSites, InternetFriends is disabled for this site, return
+        // if websiteUrl is present in disabledSites, InternetFriends is disabled for this site, return
         let websiteUrl = window.location.host;
         if (IFSettings.disabledSites[websiteUrl]) {
             Logger.log('Website is disabled. Exiting.');
@@ -40,7 +80,7 @@ var Inject = (function() {
         // add the "chat" iframe
         _iframe = document.createElement('iframe');
         _iframe.id = ID.IFRAME;
-        _iframe.src = typeof chrome !== "undefined" && chrome.runtime ? chrome.runtime.getURL('html/iframe/chat.html?view=chat&_' + new Date().getTime()) : './html/iframe/chat.html';
+        _iframe.src = typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.getURL ? chrome.runtime.getURL('html/iframe/chat.html?view=chat&_' + new Date().getTime()) : './html/iframe/chat.html';
         _container.append(_iframe);
     };
 
@@ -99,7 +139,7 @@ var Inject = (function() {
     }
 
     function sendMessage(event, data) {
-        var origin = typeof chrome !== "undefined" && chrome.runtime ? 'chrome-extension://' + chrome.runtime.id : '*';
+        var origin = typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.id ? 'chrome-extension://' + chrome.runtime.id : '*';
         _iframe.contentWindow.postMessage({ event, data: data || {} }, origin);
     }
 
@@ -162,11 +202,11 @@ if (isWebRTCSupported) {
         // If IFSettings have not been initialized, wait for init event to be dispatched
         if (!IFSettings) {
             IFEvents.addEventListener('settings.init', function () {
-                Inject.init();
+                Inject.tryInit();
             });
         } else {
             // else, init now
-            Inject.init();
+            Inject.tryInit();
         }
     }, false);
 } else {

@@ -148,9 +148,9 @@ function websiteExtras(cb){
   return src(['!*.js', '**/*'], { cwd: './app/website/', base: './app/website/' })
     .pipe($.if('*.css', $.cleanCss({compatibility: '*'})))
     .pipe($.if('*.html', $.htmlmin({
-      collapseWhitespace: true,
-      minifyCSS: true,
-      minifyJS: true,
+      collapseWhitespace: false,
+      minifyCSS: false,
+      minifyJS: false,
       removeComments: true
     })))
     .pipe(dest('website'));
