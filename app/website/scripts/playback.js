@@ -5,11 +5,17 @@ let _iframe,
 // post messages to the window to be recieved in the chat script
 function sendMessage(messageNum, timeout) {
     if (messageNum >= _messages.length) {
-        window.postMessage({ event: 'disconnected', data: { userId: 'internetfriends-welcomebot' }}, '*');
+        window.postMessage({ event: 'disconnected', data: { userId: 'internetfriends-welcomebot', source: 'peer' }}, '*');
         return;
     }
 
     var message = _messages[messageNum];
+    if (!message.data)
+        message.data = {};
+
+    // pretend this message is coming from the swarm so that it doesn't get forwarded to other users
+    message.data.source = 'peer';
+
     var elapsed = Date.now() - _timeLastSent;
 
     if (elapsed >= timeout) {
