@@ -266,10 +266,7 @@ var Chat = (function() {
 
         _swarm = new IFSwarm(onMessage);
 
-        window.addEventListener("message", (event) => {
-            if (event.data.data)
-                event.data.data.userId = 'localuser';
-                
+        window.addEventListener("message", (event) => {                
             onMessage(event.data);
         });
 

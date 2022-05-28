@@ -136,7 +136,7 @@ function websiteManifest(cb){
 }
 
 function websiteScripts(cb){
-  return src('app/website/scripts/**/*.js')
+  return src('app/website/scripts/**/*')
     .pipe($.plumber())
     .pipe($.babel({
       presets: ['@babel/env']

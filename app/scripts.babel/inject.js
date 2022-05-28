@@ -138,9 +138,10 @@ var Inject = (function() {
         return document.location.host + document.location.pathname + '?' + title;
     }
 
-    function sendMessage(event, data) {
+    function sendMessage(event, data = {}) {
+        data.userId = 'localuser';
         var origin = typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.id ? 'chrome-extension://' + chrome.runtime.id : '*';
-        _iframe.contentWindow.postMessage({ event, data: data || {} }, origin);
+        _iframe.contentWindow.postMessage({ event, data }, origin);
     }
 
     // events -------------------------------------------------------------------
