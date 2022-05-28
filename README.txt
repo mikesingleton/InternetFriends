@@ -1,4 +1,4 @@
-Source code for Internet Friends browser extension.
+Source code for Internet Friends browser extension. (https://internetfriends.social)
 
 Requires npm and gulp to build
 
