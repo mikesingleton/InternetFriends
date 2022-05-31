@@ -72,7 +72,7 @@ var Logger = {
             }
 
             // set the badge color
-            chrome.action.setBadgeBackgroundColor({ color: settings.userColor });
+            chrome.browserAction.setBadgeBackgroundColor({ color: settings.userColor });
 
             // store new settings
             chrome.storage.sync.set(settings);
