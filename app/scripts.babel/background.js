@@ -71,6 +71,9 @@ var Logger = {
                 userColor: storedSettings?.userColor || getRandomColor()
             }
 
+            // set the badge color
+            chrome.action.setBadgeBackgroundColor({ color: settings.userColor });
+
             // store new settings
             chrome.storage.sync.set(settings);
 
