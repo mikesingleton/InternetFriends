@@ -64,7 +64,7 @@ function res(cb) {
   const manifest = require('./app/manifest.json');
   var log = require('fancy-log');
   var debug = require('gulp-debug');
-  return src(manifest.web_accessible_resources[0].resources, { cwd: './app/', base: './app/', allowEmpty: true })
+  return src(manifest.web_accessible_resources, { cwd: './app/', base: './app/', allowEmpty: true })
     .pipe(debug())
     .pipe($.if('*.css', $.cleanCss({compatibility: '*'})))
     .pipe(dest('dist'));
@@ -114,7 +114,7 @@ function extensionScripts(cb) {
 function package(cb) {
   var manifest = require('./dist/manifest.json');
   return src('dist/**')
-      .pipe($.zip('InternetFriends-' + manifest.version + '.zip'))
+      .pipe($.zip('InternetFriends-' + manifest.version + ' Firefox.zip'))
       .pipe(dest('package'));
 }
 
@@ -127,7 +127,7 @@ function websiteManifest(cb){
   const manifest = require('./app/manifest.json');
   return src([
       '!*.html',
-      ...manifest.web_accessible_resources[0].resources,
+      ...manifest.web_accessible_resources,
       ...manifest.content_scripts[0].css,
       ...manifest.content_scripts[0].js
     ], { cwd: './app/', base: './app/', allowEmpty: true })

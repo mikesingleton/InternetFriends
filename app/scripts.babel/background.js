@@ -18,7 +18,7 @@ chrome.runtime.onMessage.addListener(
         {
             let peers = request.data.peers;
 
-            chrome.action.setBadgeText(
+            chrome.browserAction.setBadgeText(
                 {
                     text: peers > 0 ? peers.toString() : '',
                     tabId: sender.tab.id
@@ -27,7 +27,7 @@ chrome.runtime.onMessage.addListener(
         }
         else if (request.event === 'updateBadgeColor')
         {
-            chrome.action.setBadgeBackgroundColor({ color: request.data.userColor });
+            chrome.browserAction.setBadgeBackgroundColor({ color: request.data.userColor });
         }
 
         // dummy response due to bug: https://stackoverflow.com/questions/71520198/manifestv3-new-promise-error-the-message-port-closed-before-a-response-was-rece/71520415#71520415

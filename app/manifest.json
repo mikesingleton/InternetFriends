@@ -1,7 +1,7 @@
 {
     "name": "__MSG_appName__",
-    "version": "1.1.3",
-    "manifest_version": 3,
+    "version": "1.1.4",
+    "manifest_version": 2,
     "description": "__MSG_appDescription__",
     "icons": {
         "16": "images/icon-16.png",
@@ -9,28 +9,23 @@
     },
     "default_locale": "en",
     "background": {
-        "service_worker": "scripts/background.js"
+        "page": "html/background.html"
     },
     "permissions": [
         "storage",
         "activeTab",
         "tabs"
     ],
-    "externally_connectable": {
-        "ids": ["*"],
+    "content_scripts": [{
         "matches": [
+            "*://*/*"
+        ],
+        "exclude_matches": [
             "*://*.internetfriends.social/*",
             "*://internetfriends.social/*",
             "*://internetfriends-website.web.app/",
             "*://internetfriends-website.firebaseapp.com/"
         ],
-        "accepts_tls_channel_id": false
-    },
-    "content_scripts": [{
-        "matches": [
-            "*://*/*"
-        ],
-        "exclude_matches": [],
         "css": ["styles/inject.css"],
         "js": [
             "libs/iro/iro.js",
@@ -42,28 +37,29 @@
         "run_at": "document_start"
     }],
     "web_accessible_resources": [
-        {
-            "resources": [
-                "scripts/logger.js",
-                "scripts/settings.js",
-                "scripts/background.js",
-                "scripts/popup.js",
-                "html/iframe/chat.html",
-                "scripts/bundle.js",
-                "styles/core.css",
-                "styles/chat.css",
-                "styles/slider.css",
-                "styles/popup.css"
-            ],
-            "matches": ["*://*/*"]
-        }
+        "scripts/logger.js",
+        "scripts/settings.js",
+        "scripts/background.js",
+        "scripts/popup.js",
+        "html/iframe/chat.html",
+        "html/background.html",
+        "scripts/bundle.js",
+        "styles/core.css",
+        "styles/chat.css",
+        "styles/slider.css",
+        "styles/popup.css"
     ],
-    "action": {
+    "browser_action": {
         "default_popup": "html/popup.html",
         "default_icon": {
             "19": "images/icon-19.png",
             "38": "images/icon-38.png"
         },
         "default_title": "InternetFriends"
-    }
+    },
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "internetfriends@internetfriends.social"
+        }
+    }      
 }
