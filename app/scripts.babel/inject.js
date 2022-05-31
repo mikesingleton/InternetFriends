@@ -9,6 +9,7 @@ var Inject = (function() {
     var _this = {},
         _container = null,
         _iframe = null,
+        _iframeOrigin = null,
         _roomCode = null,
         _comboDown = false;
 
@@ -65,9 +66,9 @@ var Inject = (function() {
 
         // add message listener
         window.addEventListener("message", (event) => {
-            switch (event.data) {
+            switch (event.data.event) {
                 case 'iframeInitialized':
-                    onIframeInitialized();
+                    onIframeInitialized(event.data.data);
                     break;
             }
         });
@@ -85,8 +86,11 @@ var Inject = (function() {
     };
 
     // private functions --------------------------------------------------------
-    function onIframeInitialized() {
-        Logger.log('iFrame initialized, sendMessage and swarm events are now available');
+    function onIframeInitialized(data) {
+        Logger.log('iFrame initialized at origin ' + data.origin + ', sendMessage and swarm events are now available');
+
+        // set the iframe origin
+        _iframeOrigin = data.origin;
 
         // update the room code
         _roomCode = getRoomCode();
@@ -140,8 +144,7 @@ var Inject = (function() {
 
     function sendMessage(event, data = {}) {
         data.userId = 'localuser';
-        var origin = typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.id ? 'chrome-extension://' + chrome.runtime.id : '*';
-        _iframe.contentWindow.postMessage({ event, data }, origin);
+        _iframe.contentWindow.postMessage({ event, data }, _iframeOrigin);
     }
 
     // events -------------------------------------------------------------------

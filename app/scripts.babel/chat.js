@@ -272,7 +272,7 @@ var Chat = (function() {
 
         document.addEventListener("visibilitychange", onVisibilityStateChanged, false);
 
-        window.parent.postMessage('iframeInitialized', '*');
+        window.parent.postMessage({ event: 'iframeInitialized', data: { origin: document.location.origin }}, '*');
     };
 
     // events -------------------------------------------------------------------
