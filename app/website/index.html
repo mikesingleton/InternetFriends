@@ -10,15 +10,15 @@
         <link rel="apple-touch-icon" sizes="144x144" href="./images/icons/apple-icon-144x144.png">
         <link rel="apple-touch-icon" sizes="152x152" href="./images/icons/apple-icon-152x152.png">
         <link rel="apple-touch-icon" sizes="180x180" href="./images/icons/apple-icon-180x180.png">
-        <link rel="icon" type="image/png" sizes="192x192"  href="./images/icons/android-icon-192x192.png">
+        <link rel="icon" type="image/png" sizes="192x192" href="./images/icons/android-icon-192x192.png">
         <link rel="icon" type="image/png" sizes="32x32" href="./images/icons/favicon-32x32.png">
         <link rel="icon" type="image/png" sizes="96x96" href="./images/icons/favicon-96x96.png">
         <link rel="icon" type="image/png" sizes="16x16" href="./images/icons/favicon-16x16.png">
         <link rel="manifest" href="./images/icons/manifest.json">
         <meta name="msapplication-TileColor" content="#ffffff">
         <meta name="msapplication-TileImage" content="./images/icons/ms-icon-144x144.png">
-        <link rel="stylesheet" type="text/css" media="all" href="./styles/chat.css" />
-        <link rel="stylesheet" type="text/css" media="all" href="./styles/inject.css" />
+        <link rel="stylesheet" type="text/css" media="all" href="./styles/chat.css">
+        <link rel="stylesheet" type="text/css" media="all" href="./styles/inject.css">
         <script src="./libs/iro/iro.js"></script>
         <script src="./libs/jquery-3.5.1.min.js"></script>
         <script src="./scripts/logger.js"></script>
@@ -76,6 +76,12 @@
         font-weight: bold;
         color: #5e17eb;
     }
+    .if-extension {
+        color: white;
+        font-family: "Open Sans", Verdana, Geneva, Tahoma, sans-serif;
+        font-size: 17px;
+        margin-top: 111px;
+    }
     /* Style buttons */
     .link-btn {
         background-color: White;
@@ -85,10 +91,22 @@
         cursor: pointer;
         font-size: 19px;
         font-family: Verdana, Geneva, Tahoma, sans-serif;
-        margin: 26px;
+        margin: 8px;
         text-decoration: none;
+        display: inline-block;
     }
-
+    .browser-buttons {
+        margin-top: 4px;
+    }
+    .source-code-button {
+        position: absolute;
+        bottom: 6;
+        left: 6;
+    }
+    .source-code-button .link-btn {
+        font-size: 12px;
+        padding: 10px;
+    }
     /* Darker background on mouse-over */
     .link-btn:hover {
         background-color: Grey;
@@ -116,10 +134,29 @@
             <div class="if-tag">
                 Don't browse alone
             </div>
-            <a href="https://chrome.google.com/webstore/detail/internet-friends/lhhkoincelmladajmdhodgbaacpbalbg" target="_blank" class="link-btn">
-                <i class="fa fa-external-link link-icon"></i>
-                Get the Chrome Extension
-            </a>
+            <div class="if-extension">
+                Get the Browser Extension
+            </div>
+            <div class="browser-buttons">
+                <a href="https://chrome.google.com/webstore/detail/internet-friends/lhhkoincelmladajmdhodgbaacpbalbg" target="_blank" class="link-btn">
+                    <i class="fa fa-brands fa-chrome"></i>
+                    Chrome
+                </a>
+                <a href="https://addons.mozilla.org/en-US/firefox/addon/internet-friends/" target="_blank" class="link-btn">
+                    <i class="fa fab fa-firefox"></i>
+                    Firefox
+                </a>
+                <!--
+                <a href="https://addons.mozilla.org/en-US/firefox/addon/internet-friends/" target="_blank" class="link-btn">
+                    <i class="fa fab fa-edge"></i>
+                    Edge
+                </a>
+                <a href="https://addons.mozilla.org/en-US/firefox/addon/internet-friends/" target="_blank" class="link-btn">
+                    <i class="fa fab fa-safari"></i>
+                    Safari
+                </a>
+                -->
+            </div>
         </div>
         <div class="bottom-right-feature feature">
             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 409.246 410.256" style="fill: rgb(0, 0, 0);" xml:space="preserve">
@@ -129,6 +166,12 @@
                     <polygon style="opacity: 0.8; fill: rgb(94, 23, 235);" points="0,137.731 0,1.474 1.474,0 137.731,0  "></polygon>
                 </g>
             </svg>
+        </div>
+        <div class="source-code-button">
+            <a href="https://github.com/mikesingleton/InternetFriends" target="_blank" class="link-btn">
+                <i class="fa fa-brands fa-github"></i>
+                View the GitHub
+            </a>
         </div>
     </body>
     </html>
