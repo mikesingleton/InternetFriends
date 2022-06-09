@@ -11,7 +11,11 @@ var Inject = (function() {
         _iframe = null,
         _iframeOrigin = null,
         _roomCode = null,
-        _comboDown = false;
+        _comboDown = false,
+        _browserExtensionIds = [
+            'lhhkoincelmladajmdhodgbaacpbalbg',     // Chrome
+            'cdijpialkplmolkgbdgbjmglaiimkhfb'      // Edge
+        ];;
 
     // initialize ---------------------------------------------------------------
     _this.tryInit = function() {
@@ -35,22 +39,9 @@ var Inject = (function() {
         
         if (!chrome.runtime.id)
         {
-            // check to see if the extension is running
-            var chromeExtensionId = 'lhhkoincelmladajmdhodgbaacpbalbg';
-            chrome.runtime.sendMessage(chromeExtensionId, { message: "version" },
-                function (reply) {
-                    if (reply) {
-                        // this script is running outside of the extension, but the extension is already installed and running, do nothing
-                        return;
-                    }
-
-                    if (chrome.runtime.lastError) {
-                        // there was an error contacting the extension (likely not running), init
-                        _this.init();
-                        return;
-                    }
-                }
-            );
+            // this script is running within the browser
+            // check to see if the extension is also already running in the browser
+            testExtensionRunning(_browserExtensionIds, 0);
         }
     }
 
@@ -86,6 +77,33 @@ var Inject = (function() {
     };
 
     // private functions --------------------------------------------------------
+    function testExtensionRunning(browserExtensionIds, index)
+    {
+        if (index >= browserExtensionIds.length)
+        {
+            // an attempt has been made to contact each browser extension by it's id, all have failed
+            // the Internet Friends browser extension is not running, init
+            _this.init();
+            return;
+        }
+
+
+        chrome.runtime.sendMessage(browserExtensionIds[index], { message: "version" },
+            function (reply) {
+                if (reply) {
+                    // this script is running outside of the extension, but the extension is already installed and running, do nothing
+                    return;
+                }
+
+                if (chrome.runtime.lastError) {
+                    // there was an error contacting the extension (likely not running), try the next one in the array
+                    testExtensionRunning(browserExtensionIds, index++);
+                    return;
+                }
+            }
+        );
+    }
+
     function onIframeInitialized(data) {
         Logger.log('iFrame initialized at origin ' + data.origin + ', sendMessage and swarm events are now available');
 
