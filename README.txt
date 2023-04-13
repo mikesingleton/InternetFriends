@@ -18,11 +18,11 @@ gulp Local 	v4.0.2
 First time build:
 
 1) cd to the root directory
-2) run 'npm i -g node-pre-gyp' (a prerequisite for wrtc)
-4) run 'npm install --global gulp-cli' (install gulp)
-5) run 'npm install' (install prerequisites for Internet Friends)
-6) run 'gulp' (build Internet Friends)
-7) run 'gulp package' (package Internet Friends)
+2) run 'npm i -g node-pre-gyp'                      (install prerequisite for wrtc)
+4) run 'npm install --global gulp-cli'              (install gulp)
+5) run 'npm install'                                (install prerequisites for Internet Friends)
+6) run 'gulp'                                       (build Internet Friends)
+7) run 'gulp package'                               (package Internet Friends)
 
 To build:
 
