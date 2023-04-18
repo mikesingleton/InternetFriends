@@ -22,13 +22,28 @@
             </svg>
         </div>
         <div id="popupBox">
-            <div class="if">
+            <div id="if-title" class="if" style="cursor: pointer;">
                 Internet Friends
             </div>
             <div id="website" class="website">
                 website.com
             </div>
-            <table class="table">
+            <table id="paused" class="table">
+                <tr>
+                    <td>
+                        Internet Friends is paused:
+                        <span id="countdownTimer"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button id="reenableButton" class="reenableButton">
+                            Re-Enable Internet Friends
+                        </button>
+                    </td>
+                </tr>
+            </table>
+            <table id="settings" class="table" style="display: hidden">
                 <tr>
                     <td>
                         Enable for this website
@@ -59,6 +74,16 @@
                         <button id="cursorColorButton" class="fakeMouseButton">
                             <div id="fakeMouse" class="fakeMouseBackgroundColor"></div>
                         </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Pause Extension   
+                        <div style="display: flex;">
+                            <button id="pause15m" class="pauseButton">15m</button>
+                            <button id="pause3h" class="pauseButton">3h</button>
+                            <button id="pause24h" class="pauseButton">24h</button>
+                        </div>
                     </td>
                 </tr>
             </table>

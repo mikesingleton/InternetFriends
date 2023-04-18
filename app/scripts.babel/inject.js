@@ -230,7 +230,7 @@ if (isWebRTCSupported) {
             // else, init now
             Inject.tryInit();
         }
-    }, false);
+    }, { once: true });
 } else {
     console.log("InternetFriends does not work without WebRTC support!"); // use console log here so it's logged regardless of whether general logging is enabled
 }

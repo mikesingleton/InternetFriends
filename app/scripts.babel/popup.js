@@ -3,13 +3,15 @@
 var Popup = (function() {
     // variables ----------------------------------------------------------------
     var _this = {},
+        _title = null,
         _website = null,
         _websiteUrl = null,
         _enableForSite = null,
         _enableChat = null,
         _keyComboInput = null,
         _settingsTimeout = null,
-        _userColor = null;
+        _userColor = null,
+        _pauseButtons = null;
 
     // initialize ---------------------------------------------------------------
     _this.init = function() {
@@ -20,10 +22,18 @@ var Popup = (function() {
 
         // Get document elements
 
+        _title = document.getElementById('if-title');
         _website = document.getElementById('website');
         _enableForSite = document.getElementById('enableForSite');
         _enableChat = document.getElementById('enableChat');
         _keyComboInput = document.getElementById('keyComboInput');
+        _pauseButtons = document.querySelectorAll(".pauseButton");
+
+        // Set website click event
+
+        _title.addEventListener('click', function () {
+            window.open('https://internetfriends.social', '_blank');
+        });
 
         // Populate values
         
@@ -102,6 +112,10 @@ var Popup = (function() {
 
         _cursorColorButton.addEventListener("click", onCursorButtonClicked);
         _colorWheelContainerBackground.addEventListener("click", onPopupContainerClicked);
+
+        // Handle Pause Timer
+
+        setupPauseButtons();
     };
 
     // private functions --------------------------------------------------------
@@ -207,6 +221,43 @@ var Popup = (function() {
         var _refreshText = document.getElementById('refresh');
         _refreshText.style.visibility = "visible";
     };
+
+    function setupPauseButtons() {
+        _pauseButtons.forEach(button => {
+            button.addEventListener("click", function() {
+              const duration = button.id === "pause15m" ? 15 * 60 * 1000 :      // 15m
+                               button.id === "pause3h" ? 3 * 60 * 60 * 1000 :   // 3h
+                               24 * 60 * 60 * 1000;                             // 24hr
+        
+              // Clear any existing countdown
+              if (countdown) {
+                clearTimeout(countdown);
+              }
+        
+              const endTime = new Date().getTime() + duration;
+              timerContainer.classList.remove("hidden");
+        
+              // Update the countdown timer
+              function updateCountdown() {
+                const timeLeft = endTime - new Date().getTime();
+                
+                if (timeLeft <= 0) {
+                  timerContainer.classList.add("hidden");
+                  clearTimeout(countdown);
+                } else {
+                  const hours = Math.floor(timeLeft / (60 * 60 * 1000));
+                  const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+                  const seconds = Math.floor((timeLeft % (60 * 1000)) / 1000);
+        
+                  countdownTimer.textContent = `${hours}h ${minutes}m ${seconds}s`;
+                  countdown = setTimeout(updateCountdown, 1000);
+                }
+              }
+        
+              updateCountdown();
+            });
+          });
+    }
 
     return _this;
 }());

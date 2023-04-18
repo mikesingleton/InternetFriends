@@ -66,7 +66,8 @@ var IFEvents = new EventTarget();
             combo: _defaultCombo,
             disabledSites: {},
             enableChat: true,
-            userColor: getRandomIroColor()
+            userColor: getRandomIroColor(),
+            pausedUntil: 
         }
         
         IFEvents.dispatchEvent(initEvent);
