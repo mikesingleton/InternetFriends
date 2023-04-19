@@ -9,16 +9,20 @@
 body {
   text-align: center;
   width: 314px;
-  height: 282px;
+  height: 318px;
   overflow: hidden;
   margin: auto;
   user-select: none;
 }
 
+.hidden {
+  display: none;
+}
+
 .popupContainer {
   position: absolute;
   width: 314px;
-  height: 282px;
+  height: 318px;
 }
 
 table {
@@ -34,7 +38,14 @@ td {
   height: 34px;
   align-items: center;
   display: flex;
+}
+
+#settingsTable td {
   justify-content: space-between;
+}
+
+#pauseTable td {
+  justify-content: center;
 }
 
 #keyComboInput {
@@ -109,6 +120,18 @@ td {
   padding: 6px 10px;
   margin-left: 94px;
   cursor: pointer;
+}
+
+.pauseButton {
+  font-size: 10px;
+  font-weight: bold;
+  width: 30px;
+  height: 30px;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  font-family: "Open Sans",Verdana,Geneva,Tahoma,sans-serif;
+  margin-left: 5px;
 }
 
 .popup {

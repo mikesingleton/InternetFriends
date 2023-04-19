@@ -47,11 +47,17 @@ var Inject = (function() {
 
     _this.init = function() {
         Logger.log(`Internet Friends Initializing Room "${window.location.host + window.location.pathname} : ${document.title}"`);
+        
+        // if InternetFriends is paused, return
+        if (IFSettings.pausedUntil > Date.now()) {
+            Logger.log('Internet Friends is paused. Exiting.');
+            return;
+        }
 
         // if websiteUrl is present in disabledSites, InternetFriends is disabled for this site, return
         let websiteUrl = window.location.host;
         if (IFSettings.disabledSites[websiteUrl]) {
-            Logger.log('Website is disabled. Exiting.');
+            Logger.log('Website is disabled in Internet Friends settings. Exiting.');
             return;
         }
 
@@ -230,7 +236,7 @@ if (isWebRTCSupported) {
             // else, init now
             Inject.tryInit();
         }
-    }, false);
+    }, { once: true });
 } else {
     console.log("InternetFriends does not work without WebRTC support!"); // use console log here so it's logged regardless of whether general logging is enabled
 }
