@@ -28,22 +28,37 @@
             <div id="website" class="website">
                 website.com
             </div>
-            <table id="paused" class="table">
+            <table id="pauseTable" class="table">
                 <tr>
                     <td>
-                        Internet Friends is paused:
-                        <span id="countdownTimer"></span>
+                        Internet Friends is paused...
                     </td>
                 </tr>
                 <tr>
                     <td>
-                        <button id="reenableButton" class="reenableButton">
-                            Re-Enable Internet Friends
+                        <span id="countdownTimer"></span>
+                    </td>
+                </tr>
+                <tr><td></td></tr>
+                <tr>
+                    <td style="justify-content: space-between;">
+                        Add Time
+                        <div style="display: flex;">
+                            <button id="pause15m" class="pauseButton">15m</button>
+                            <button id="pause3h" class="pauseButton">3h</button>
+                            <button id="pause24h" class="pauseButton">24h</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button id="unpauseButton" class="unpauseButton">
+                            Unpause Internet Friends
                         </button>
                     </td>
                 </tr>
             </table>
-            <table id="settings" class="table" style="display: hidden">
+            <table id="settingsTable" class="table" style="display: hidden">
                 <tr>
                     <td>
                         Enable for this website

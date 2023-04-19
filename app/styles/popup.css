@@ -15,6 +15,10 @@ body {
   user-select: none;
 }
 
+.hidden {
+  display: none;
+}
+
 .popupContainer {
   position: absolute;
   width: 314px;
@@ -34,7 +38,14 @@ td {
   height: 34px;
   align-items: center;
   display: flex;
+}
+
+#settingsTable td {
   justify-content: space-between;
+}
+
+#pauseTable td {
+  justify-content: center;
 }
 
 #keyComboInput {

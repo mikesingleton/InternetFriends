@@ -3,6 +3,7 @@
 var Popup = (function() {
     // variables ----------------------------------------------------------------
     var _this = {},
+        _settingsTable = null,
         _title = null,
         _website = null,
         _websiteUrl = null,
@@ -11,7 +12,10 @@ var Popup = (function() {
         _keyComboInput = null,
         _settingsTimeout = null,
         _userColor = null,
-        _pauseButtons = null;
+        _pauseTable = null,
+        _countdownTimeout = null,
+        _pausedUntil = null,
+        _pausedUntilTimeout = null;
 
     // initialize ---------------------------------------------------------------
     _this.init = function() {
@@ -27,7 +31,8 @@ var Popup = (function() {
         _enableForSite = document.getElementById('enableForSite');
         _enableChat = document.getElementById('enableChat');
         _keyComboInput = document.getElementById('keyComboInput');
-        _pauseButtons = document.querySelectorAll(".pauseButton");
+        _pauseTable = document.getElementById('pauseTable');
+        _settingsTable = document.getElementById('settingsTable');
 
         // Set website click event
 
@@ -115,7 +120,18 @@ var Popup = (function() {
 
         // Handle Pause Timer
 
+        _pausedUntil = IFSettings.pausedUntil
         setupPauseButtons();
+
+        // Handle Table Display
+
+        // if currently paused
+        if (_pausedUntil > Date.now()) {
+            _settingsTable.classList.add("hidden");
+            updateCountdown();
+        } else {
+            _pauseTable.classList.add("hidden");
+        }
     };
 
     // private functions --------------------------------------------------------
@@ -222,41 +238,77 @@ var Popup = (function() {
         _refreshText.style.visibility = "visible";
     };
 
+    function updateCountdown() {
+        var countdownTimer = document.getElementById('countdownTimer');
+        const timeLeft = _pausedUntil - new Date().getTime();
+        
+        if (timeLeft <= 0) {
+            _pauseTable.classList.add("hidden");
+            _settingsTable.classList.remove("hidden");
+            clearTimeout(_countdownTimeout);
+        } else {
+            const days = Math.floor(timeLeft / (24 * 60 * 60 * 1000));
+            const hours = Math.floor((timeLeft % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+            const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+            const seconds = Math.floor((timeLeft % (60 * 1000)) / 1000);
+
+            countdownTimer.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;                
+            _countdownTimeout = setTimeout(updateCountdown, 1000);
+        }
+    }
+
     function setupPauseButtons() {
-        _pauseButtons.forEach(button => {
+        var pauseButtons = document.querySelectorAll(".pauseButton");
+        var unpauseButton = document.getElementById('unpauseButton');
+        
+        pauseButtons.forEach(button => {
             button.addEventListener("click", function() {
-              const duration = button.id === "pause15m" ? 15 * 60 * 1000 :      // 15m
-                               button.id === "pause3h" ? 3 * 60 * 60 * 1000 :   // 3h
-                               24 * 60 * 60 * 1000;                             // 24hr
+                const duration = button.id === "pause15m" ? 15 * 60 * 1000 :      // 15m
+                                button.id === "pause3h" ? 3 * 60 * 60 * 1000 :   // 3h
+                                24 * 60 * 60 * 1000;                             // 24hr
         
-              // Clear any existing countdown
-              if (countdown) {
-                clearTimeout(countdown);
-              }
-        
-              const endTime = new Date().getTime() + duration;
-              timerContainer.classList.remove("hidden");
-        
-              // Update the countdown timer
-              function updateCountdown() {
-                const timeLeft = endTime - new Date().getTime();
-                
-                if (timeLeft <= 0) {
-                  timerContainer.classList.add("hidden");
-                  clearTimeout(countdown);
-                } else {
-                  const hours = Math.floor(timeLeft / (60 * 60 * 1000));
-                  const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
-                  const seconds = Math.floor((timeLeft % (60 * 1000)) / 1000);
-        
-                  countdownTimer.textContent = `${hours}h ${minutes}m ${seconds}s`;
-                  countdown = setTimeout(updateCountdown, 1000);
+                // Clear any existing countdown
+                if (_countdownTimeout) {
+                clearTimeout(_countdownTimeout);
                 }
-              }
         
-              updateCountdown();
+                // If extension is already paused
+                if (_pausedUntil > new Date().getTime()) {
+                    // Add time
+                    _pausedUntil += duration
+                } else {
+                    // Set time
+                    _pausedUntil = new Date().getTime() + duration
+
+                    // Set refresh text
+                    var _refreshText = document.getElementById('refresh');
+                    _refreshText.style.visibility = "visible";
+                }
+
+                // use timeout to prevent settings from being updated too quickly
+                if (_pausedUntilTimeout)
+                    clearTimeout(_pausedUntilTimeout);
+                _pausedUntilTimeout = setTimeout(updatePausedUntil, 100);
+                _pauseTable.classList.remove("hidden");
+                _settingsTable.classList.add("hidden");
+        
+                updateCountdown();
             });
-          });
+        });
+
+        unpauseButton.addEventListener("click", function() {
+            _pausedUntil = -1
+            updatePausedUntil();
+            _pauseTable.classList.add("hidden");
+            _settingsTable.classList.remove("hidden");
+            
+            var _refreshText = document.getElementById('refresh');
+            _refreshText.style.visibility = "visible";
+        });
+    }
+
+    function updatePausedUntil () {
+        chrome.storage.sync.set({'pausedUntil': _pausedUntil});
     }
 
     return _this;
