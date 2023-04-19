@@ -34,7 +34,8 @@ var IFEvents = new EventTarget();
                 combo: storedSettings?.combo || _defaultCombo,
                 disabledSites: storedSettings?.disabledSites || {},
                 enableChat: storedSettings?.enableChat === true || storedSettings?.enableChat === undefined,
-                userColor: storedSettings?.userColor || getRandomIroColor()
+                userColor: storedSettings?.userColor || getRandomIroColor(),
+                pausedUntil: storedSettings?.pausedUntil || -1
             }
 
             // set new settings
@@ -66,7 +67,8 @@ var IFEvents = new EventTarget();
             combo: _defaultCombo,
             disabledSites: {},
             enableChat: true,
-            userColor: getRandomIroColor()
+            userColor: getRandomIroColor(),
+            pausedUntil: -1
         }
         
         IFEvents.dispatchEvent(initEvent);

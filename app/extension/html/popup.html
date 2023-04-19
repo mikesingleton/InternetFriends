@@ -22,13 +22,43 @@
             </svg>
         </div>
         <div id="popupBox">
-            <div class="if">
+            <div id="if-title" class="if" style="cursor: pointer;">
                 Internet Friends
             </div>
             <div id="website" class="website">
                 website.com
             </div>
-            <table class="table">
+            <table id="pauseTable" class="table">
+                <tr>
+                    <td>
+                        Internet Friends is paused...
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span id="countdownTimer"></span>
+                    </td>
+                </tr>
+                <tr><td></td></tr>
+                <tr>
+                    <td style="justify-content: space-between;">
+                        Add Time
+                        <div style="display: flex;">
+                            <button id="pause15m" class="pauseButton">15m</button>
+                            <button id="pause3h" class="pauseButton">3h</button>
+                            <button id="pause24h" class="pauseButton">24h</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button id="unpauseButton" class="unpauseButton">
+                            Unpause Internet Friends
+                        </button>
+                    </td>
+                </tr>
+            </table>
+            <table id="settingsTable" class="table" style="display: hidden">
                 <tr>
                     <td>
                         Enable for this website
@@ -59,6 +89,16 @@
                         <button id="cursorColorButton" class="fakeMouseButton">
                             <div id="fakeMouse" class="fakeMouseBackgroundColor"></div>
                         </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Pause extension   
+                        <div style="display: flex;">
+                            <button id="pause15m" class="pauseButton">15m</button>
+                            <button id="pause3h" class="pauseButton">3h</button>
+                            <button id="pause24h" class="pauseButton">24h</button>
+                        </div>
                     </td>
                 </tr>
             </table>
